@@ -1,0 +1,6 @@
+Patater guide: https://patater.com/nes-asm-tutorials/day-1/
+Vetenskapliga artiklar: https://sites.google.com/ulricehamn.se/mediatektingsholm/startsida/information/vetenskapliga-artiklar
+PDF artikel ("nintendo entertainment system" sök på google scholar): http://www.wasautomaat.com/contents/media/NESDoc.pdf
+Youtube kanalen Morphcat Games har gjort Micro Games.
+Exempelproject: pawn addventure på github : https://github.com/Vector35/PwnAdventureZ
+https://www.youtube.com/watch?v=mnUXYl5B9Qs&t=409s
