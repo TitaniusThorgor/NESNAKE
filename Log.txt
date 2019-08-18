@@ -5,3 +5,6 @@ PDF artikel ("nintendo entertainment system" sök på google scholar): http://ww
 Youtube kanalen Morphcat Games har gjort Micro Mages.
 Exempelproject: pawn addventure på github : https://github.com/Vector35/PwnAdventureZ
 https://www.youtube.com/watch?v=mnUXYl5B9Qs&t=409s
+
+Some words of wisdom:
+	"All programming languages have three basic concepts. They are instructions, variables, and control flow. If any of those three are missing it is no longer a true programming language. For example HTML has no control flow so it is not a programming language."
