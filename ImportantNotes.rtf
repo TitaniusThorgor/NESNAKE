@@ -17285,5 +17285,12 @@ ffffffff0000030000000000
 \pard\sa200\sl276\slmult1 Running an NTSC game on a PAL system will only cause the game to drop speed, this is because the PAL version's VBlank time is longer; the time the PPU picks up data about the next frame, this is the time between frames when the PPU does not render any graphics.\par
 On NTSC TV's the upper and lower borders are covered by about 0-8 rows, so vital UI elements should be desplayed above and below that.\par
 The PPU has 2KB (2*2^10 bytes) of dedocated wham (dedicated "VRAM", which is just RAM that can't be accessed by the CPU)\par
+\par
+;This is the shit\par
+$0000-0800 - Internal RAM, 2KB chip in the NES\par
+$2000-2007 - PPU access ports\par
+$4000-4017 - Audio and controller access ports\par
+$6000-7FFF - Optional WRAM inside the game cart\par
+$8000-FFFF - Game cart ROM\par
 }
  
