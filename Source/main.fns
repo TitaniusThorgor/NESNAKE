@@ -1,0 +1,4 @@
+; main.asm
+Forever                          = $C008
+RESET                            = $C000
+NMI                              = $C00B
