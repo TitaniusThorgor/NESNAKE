@@ -1,4 +1,6 @@
 ; main.asm
-Forever                          = $C008
+Forever                          = $C066
+LoadPalletsLoop                  = $C037
+PaletteData                      = $C015
 RESET                            = $C000
-NMI                              = $C00B
+NMI                              = $C069
