@@ -5,7 +5,7 @@ PDF artikel ("nintendo entertainment system" sök på google scholar): http://ww
 Youtube kanalen Morphcat Games har gjort Micro Mages.
 Exempelproject: pawn addventure på github : https://github.com/Vector35/PwnAdventureZ
 https://www.youtube.com/watch?v=mnUXYl5B9Qs&t=409s
-NES 6502 programming seiries youtube: https://www.youtube.com/watch?v=F8kx56OZQhg
+NES 6502 C programming seiries youtube: https://www.youtube.com/watch?v=F8kx56OZQhg
 
 6502 opcodes: http://www.6502.org/tutorials/6502opcodes.html
 Status flags, the status registor 'P': https://wiki.nesdev.com/w/index.php/Status_flags#The_B_flag
