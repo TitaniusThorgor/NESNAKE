@@ -1,6 +1,6 @@
 {\rtf1\ansi\ansicpg1252\deff0\nouicompat{\fonttbl{\f0\fnil\fcharset0 Calibri;}}
 {\*\generator Riched20 10.0.17763}\viewkind4\uc1 
-\pard\sa200\sl276\slmult1\f0\fs22\lang9 "Nerdy Nights week 2"\par
+\pard\sa200\sl276\slmult1\f0\fs22\lang9 "Nerdy Nights"\par
 Resolution: 256x240 pixels.\par
  For example the internal RAM is at $0000-0800. $0800 = 2048 or 2KB. 32KB quickly became too small for games, which is why memory mappers were used. Those mappers can swap in different banks of PRG code or CHR graphics. Mappers like the MMC3 allowed up to 512KB of PRG, and 256KB of CHR. There is no limit to the memory size if you create a new mapper chip, but 128KB PRG and 64KB CHR was the most common size.\par
 The CPU adress bus:\par
@@ -17292,6 +17292,8 @@ $2000-2007 - PPU access ports\par
 $4000-4017 - Audio and controller access ports\par
 $6000-7FFF - Optional WRAM inside the game cart\par
 $8000-FFFF - Game cart ROM\par
+\par
+there is an opcode called RTS: ReTurn from Subroutine\par
 \par
 PPU stuff\par
 "$0D is a bad color and should not be used"\par

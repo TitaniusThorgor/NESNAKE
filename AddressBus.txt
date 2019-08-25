@@ -1,7 +1,10 @@
 Memory Layout and Ports
 
 $0000 - $0800: internal RAM
-	$0200 - $0220: sprite data
+	$0000 - $00FF - zero page
+	$0100 - $01FF - stack
+	$0200 - $0300: sprite data
+	The rest can be used for anything
 
 $2000 - $4000: PPU ports
 	$2000: NMI startup
@@ -32,3 +35,7 @@ $2000 - $4000: PPU ports
 	+-------- Intensify blues (and darken other colors)
 	$2003: set low byte and high byte to the starting adress of sprite data array
 	$2007: color palette setup, this is done 32 times in a row, first 16 bytes for background, last for sprites. Changes during the game goes to $3F10 - $3F30.
+
+$8000 - $FFFA: Cartridge ROM/PRG ROM
+	$C000 - ?: PRG code
+	$E000 - $E020: Some color palette for testing
