@@ -1,8 +1,8 @@
 Memory Layout and Ports
 
 $0000 - $0800: internal RAM
-	$0000 - $00FF - zero page
-	$0100 - $01FF - stack
+	$0000 - $00FF: zero page
+	$0100 - $01FF: stack
 	$0200 - $0300: sprite data
 	The rest can be used for anything
 
