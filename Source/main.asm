@@ -44,7 +44,7 @@ vblankwait2:      ; Second wait for vblank, PPU is ready after this
 	BPL vblankwait2
 	
 ;LOAD PALLETS
-	;PPU: pallet recognition to adress $3F10
+	;PPU: pallet recognition to adress $3F00
 	LDA $2002	;read PPU status to reset the hight/low latch to high
 	LDA #$3F	;load the high byte
 	STA $2006	;write the high byte
@@ -98,6 +98,14 @@ Forever:
 	
 ;NMI: graphics interrupt, the only "time indicator". Expected to be 60 fps (50) for PAL
 NMI:
+	LDX $0300
+	INX
+	STX $0300
+	
+	STX $0200
+	STX $0203
+	
+	
 	;sprite setup, it seems this has to be done every NMI interrupt, 64 in the pattern table
 	;sprite DMA setup (direct memory access), typically $0200-02FF (internal RAM) is used for this, which it is in this case
 	LDA #$00	;low byte of $0200

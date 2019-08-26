@@ -4,6 +4,18 @@ $0000 - $0800: internal RAM
 	$0000 - $00FF: zero page
 	$0100 - $01FF: stack
 	$0200 - $0300: sprite data
+	1 - Y Position - vertical position of the sprite on screen. $00 is the top of the screen. Anything above $EF is off the bottom of the screen.
+	2 - Tile Number - this is the tile number (0 to 256) for the graphic to be taken from a Pattern Table.
+	3 - Attributes - this byte holds color and displaying information:
+  	76543210
+	|||   ||
+	|||   ++- Color Palette of sprite.  Choose which set of 4 from the 16 colors to use
+	|||
+	||+------ Priority (0: in front of background; 1: behind background)
+	|+------- Flip sprite horizontally
+	+-------- Flip sprite vertically
+	4 - X Position - horizontal position on the screen. $00 is the left side, anything above $F9 is off screen.
+
 	The rest can be used for anything
 
 $2000 - $4000: PPU ports
@@ -35,6 +47,7 @@ $2000 - $4000: PPU ports
 	+-------- Intensify blues (and darken other colors)
 	$2003: set low byte and high byte to the starting adress of sprite data array
 	$2007: color palette setup, this is done 32 times in a row, first 16 bytes for background, last for sprites. Changes during the game goes to $3F10 - $3F30.
+	$3F00 - $3F20: color palettes, write here to change the two 16 byte palettes during runtime
 
 $8000 - $FFFA: Cartridge ROM/PRG ROM
 	$C000 - ?: PRG code
