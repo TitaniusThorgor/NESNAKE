@@ -45,7 +45,7 @@ vblankwait2:      ; Second wait for vblank, PPU is ready after this
 	
 ;LOAD PALLETS
 	;PPU: pallet recognition to adress $3F00
-	LDA $2002	;read PPU status to reset the hight/low latch to high
+	LDA $2002	;read PPU status to reset the high/low latch to high
 	LDA #$3F	;load the high byte
 	STA $2006	;write the high byte
 	LDA #$00	;load the low byte
@@ -75,8 +75,7 @@ loadPalletsLoop:
 	;  +-------- Flip sprite vertically
 	;4 - X Position - horizontal position on the screen. $00 is the left side, anything above $F9 is off screen
 	
-	;may create some sprites at startup
-	;I'm doing that here
+	;seting up some sprites at startup
 	LDA #$80
 	STA $0200	;center of the screen vetically
 	STA $0203	;center of the screen horizontally
@@ -91,21 +90,30 @@ loadPalletsLoop:
 	LDA #%00010000	;enable sprites
 	STA $2001
 	
+	;Controller setup
+	LDA #$01
+	STA $4016
+	LDA #$00
+	STA $4016 
+	
+	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	;Game contents
+	
+	LDX #$00
+loadFirstMetaSprite:
+	LDA TestSpriteData, x
+	STA $0200, x
+	INX
+	CPX #$10
+	BNE loadFirstMetaSprite
+	
 	
 	
 Forever:
 	JMP Forever		;infinite loop
 	
-;NMI: graphics interrupt, the only "time indicator". Expected to be 60 fps (50) for PAL
+;NMI: graphics interrupt, the only "time indicator". Expected to be 60 fps, (50) for PAL
 NMI:
-	LDX $0300
-	INX
-	STX $0300
-	
-	STX $0200
-	STX $0203
-	
-	
 	;sprite setup, it seems this has to be done every NMI interrupt, 64 in the pattern table
 	;sprite DMA setup (direct memory access), typically $0200-02FF (internal RAM) is used for this, which it is in this case
 	LDA #$00	;low byte of $0200
@@ -122,6 +130,12 @@ NMI:
 PaletteData:
 	.db $0F,$31,$32,$33,$0F,$35,$36,$37,$0F,$39,$3A,$3B,$0F,$3D,$3E,$0F  ;background palette data
 	.db $0F,$1C,$15,$14,$0F,$02,$38,$3C,$0F,$1C,$15,$14,$0F,$02,$38,$3C  ;sprite palette data
+	
+TestSpriteData:
+	.db $80, $32, $00, $80   ;sprite 0
+	.db $80, $33, $00, $88   ;sprite 1
+	.db $88, $34, $00, $80   ;sprite 2
+	.db $88, $35, $00, $88   ;sprite 3
 	
 ;;;;;;;;;;;;;;;;;;;;;
 

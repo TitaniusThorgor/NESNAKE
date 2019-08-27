@@ -3,7 +3,7 @@ Memory Layout and Ports
 $0000 - $0800: internal RAM
 	$0000 - $00FF: zero page
 	$0100 - $01FF: stack
-	$0200 - $0300: sprite data
+	$0200 - $0300: DMA sprite data
 	1 - Y Position - vertical position of the sprite on screen. $00 is the top of the screen. Anything above $EF is off the bottom of the screen.
 	2 - Tile Number - this is the tile number (0 to 256) for the graphic to be taken from a Pattern Table.
 	3 - Attributes - this byte holds color and displaying information:
@@ -45,9 +45,14 @@ $2000 - $4000: PPU ports
 	||+------ Intensify reds (and darken other colors)
 	|+------- Intensify greens (and darken other colors)
 	+-------- Intensify blues (and darken other colors)
+	$2002: something to do with PPU setup
 	$2003: set low byte and high byte to the starting adress of sprite data array
-	$2007: color palette setup, this is done 32 times in a row, first 16 bytes for background, last for sprites. Changes during the game goes to $3F10 - $3F30.
-	$3F00 - $3F20: color palettes, write here to change the two 16 byte palettes during runtime
+	$2006: colour palette setup, feed high and low byte of $3F00 in the PPU memory
+	$2007: color palette setup, this is done 32 times in a row, first 16 bytes for background, last for sprites. Changes during the game goes to $3F10 - $3F30, this might be the adress to use during runtime
+
+$4000 - $6000: Controller and APU ports
+	$4016: controller 1, 0: A, 1: B, 2: Select, 3: Start, 4: Up, 5: Down, 6: Left, 7: Right
+	$4017: controller 2, well same here, there has to be some sort of setup where you set the first byte
 
 $8000 - $FFFA: Cartridge ROM/PRG ROM
 	$C000 - ?: PRG code
