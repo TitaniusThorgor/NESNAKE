@@ -18,5 +18,5 @@ Some words of wisdom:
 	"All programming languages have three basic concepts. They are instructions, variables, and control flow. If any of those three are missing it is no longer a true programming language. For example HTML has no control flow so it is not a programming language."
 	The NES's CPU is actually a 2A03, a variant of the 6502. The PPU is a 2C02.
 
-Retro cartridge makeong tutorial:
+Retro cartridge making tutorial:
         https://www.google.com/amp/s/thepoorstudenthobbyist.wordpress.com/2017/06/25/how-to-make-an-nes-reproduction-cartridge/amp/
