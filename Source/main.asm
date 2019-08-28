@@ -61,6 +61,15 @@ loadPalletsLoop:
 	CPX #$20			;compare x with $20 = 32, which is the size of both pallets combined
 	BNE loadPalletsLoop	;Branch if Not Equal
 	
+	
+	LDX #$00
+loadFirstMetaSpriteLoop:
+	LDA TestSpriteData, x	;loads the data table to the sprite table in memory
+	STA $0200, x
+	INX
+	CPX #$10
+	BNE loadFirstMetaSpriteLoop
+	
 	;sprite data: $0200 - 0240 with 4 bytes interval
 	;sprite data layout: 
 	;1 - Y Position - vertical position of the sprite on screen. $00 is the top of the screen. Anything above $EF is off the bottom of the screen.
@@ -74,43 +83,29 @@ loadPalletsLoop:
 	;  |+------- Flip sprite horizontally
 	;  +-------- Flip sprite vertically
 	;4 - X Position - horizontal position on the screen. $00 is the left side, anything above $F9 is off screen
-	
-	;seting up some sprites at startup
-	LDA #$80
-	STA $0200	;center of the screen vetically
-	STA $0203	;center of the screen horizontally
-	LDA #$00
-	STA $0201	;tile number 0
-	STA $0202	;color palette = 0; no flipping
+
 	
 	;enable NMI, sprites from pattern table table 0
 	LDA #%10000000
 	STA $2000
 	
-	LDA #%00010000	;enable sprites
+	;enable sprites
+	LDA #%00010000
 	STA $2001
 	
 	;Controller setup
 	LDA #$01
 	STA $4016
 	LDA #$00
-	STA $4016 
-	
-	;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	;Game contents
-	
-	LDX #$00
-loadFirstMetaSprite:
-	LDA TestSpriteData, x
-	STA $0200, x
-	INX
-	CPX #$10
-	BNE loadFirstMetaSprite
+	STA $4016
 	
 	
 	
 Forever:
 	JMP Forever		;infinite loop
+	
+;Subroutines goes here
+
 	
 ;NMI: graphics interrupt, the only "time indicator". Expected to be 60 fps, (50) for PAL
 NMI:
@@ -120,6 +115,40 @@ NMI:
 	STA $2003
 	LDA #$02
 	STA $4014	;sets the high byte
+	
+;;;;;;;;;;;;;;;;;;;;;;;;;;
+	
+;Input
+	;latch buttons
+	LDA #$01
+	STA $4016
+	LDA #$00
+	STA $4016
+	
+	;player 1 - A
+	LDA $4016
+	AND #%00000001
+	BEQ readADone	;branch
+	
+	LDA $0203       ; load sprite X position
+	CLC             ; make sure the carry flag is clear
+	ADC #$01        ; A = A + 1
+	STA $0203       ; save sprite X position
+readADone:
+
+	;player 1 - B
+	LDA $4016
+	AND #%00000001
+	BEQ readBDone
+	
+	LDA $0203
+	SEC
+	SBC #$01
+	STA $0203
+readBDone:
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+	
 	RTI	;ReTurn from Interrupt
 	
 ;;;;;;;;;;;;;;;;;;;;;

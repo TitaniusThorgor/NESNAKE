@@ -1,11 +1,13 @@
 ; main.asm
-Forever                          = $C081
+Forever                          = $C07B
 clearMem                         = $C01B
 vBlankWait1                      = $C014
 loadPalletsLoop                  = $C04F
 PaletteData                      = $E000
 vblankwait2                      = $C03B
 RESET                            = $C000
-NMI                              = $C084
-loadFirstMetaSprite              = $C076
+NMI                              = $C07E
+loadFirstMetaSpriteLoop          = $C05C
+readBDone                        = $C0B2
 TestSpriteData                   = $E020
+readADone                        = $C0A2

@@ -51,6 +51,7 @@ $2000 - $2007: PPU ports
 	$2007: color palette setup, this is done 32 times in a row, first 16 bytes for background, last for sprites. Changes during the game goes to $3F10 - $3F30, this might be the adress to use during runtime
 
 $4000 - $4017: Controller and APU ports
+	$4014: set this every NMI with the high byte of the adress used for DMA, for some reason this is here and not among the other PPU ports
 	$4016: controller 1, 0: A, 1: B, 2: Select, 3: Start, 4: Up, 5: Down, 6: Left, 7: Right
 	$4017: controller 2, well same here, there has to be some sort of setup where you set the first byte
 
