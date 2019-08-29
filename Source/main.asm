@@ -108,7 +108,13 @@ Forever:
 
 	
 ;NMI: graphics interrupt, the only "time indicator". Expected to be 60 fps, (50) for PAL
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 NMI:
+	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 	;sprite setup, it seems this has to be done every NMI interrupt, 64 in the pattern table
 	;sprite DMA setup (direct memory access), typically $0200-02FF (internal RAM) is used for this, which it is in this case
 	LDA #$00	;low byte of $0200
@@ -119,39 +125,84 @@ NMI:
 ;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
 ;Input
-	;latch buttons
+	;prepare buttons to send out signals
 	LDA #$01
 	STA $4016
 	LDA #$00
 	STA $4016
 	
-	;player 1 - A
+	LDX #$00
+input1Loop:
 	LDA $4016
 	AND #%00000001
-	BEQ readADone	;branch
-	
-	LDA $0203       ; load sprite X position
-	CLC             ; make sure the carry flag is clear
-	ADC #$01        ; A = A + 1
-	STA $0203       ; save sprite X position
-readADone:
-
-	;player 1 - B
-	LDA $4016
+	STA $07F0, x
+	INX
+	CPX #$08
+	BNE input1Loop
+input2Loop:
+	LDA $4017
 	AND #%00000001
-	BEQ readBDone
+	STA $07F0, x
+	INX
+	CPX #$10
+	BNE input2Loop
 	
-	LDA $0203
-	SEC
-	SBC #$01
-	STA $0203
-readBDone:
+;player1A
+;	LDA $4016
+;	AND #%00000001
+;	BEQ read1ADone	;branch
+;	
+;	LDA $0203       ; load sprite X position
+;	CLC             ; make sure the carry flag is clear
+;	ADC #$01        ; A = A + 1
+;	STA $0203       ; save sprite X position
+;read1ADone:
 
+;player1B
+;	LDA $4016
+;	AND #%00000001
+;	BEQ read1BDone
+;	
+;	LDA $0203
+;	SEC
+;	SBC #$01
+;	STA $0203
+;read1BDone:
+	
+	;try to move the meta sprite
+	LDA $07F4
+	BEQ afterUp
+	LDX $0200
+	DEX
+	STX $0200
+afterUp:
+
+	LDA $07F5
+	BEQ afterDown
+	LDX $0200
+	INX
+	STX $0200
+afterDown:
+
+	LDA $07F6
+	BEQ afterLeft
+	LDX $0203
+	DEX
+	STX $0203
+afterLeft:
+
+	LDA $07F7
+	BEQ afterRight
+	LDX $0203
+	INX
+	STX $0203
+afterRight:
+	
 ;;;;;;;;;;;;;;;;;;;;;;;;
 	
 	RTI	;ReTurn from Interrupt
 	
-;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;
 	
 	.bank 1
 	

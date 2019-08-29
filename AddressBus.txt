@@ -17,7 +17,10 @@ $0000 - $07FF: internal RAM
 	4 - X Position - horizontal position on the screen. $00 is the left side, anything above $F9 is off screen.
 
 	The rest can be used for anything
-
+	
+	$07F0 - $07F7: player1
+	$07F8 - $07FF: player2
+	
 $2000 - $2007: PPU ports
 	$2000: NMI startup
 	76543210
