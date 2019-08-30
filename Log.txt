@@ -21,3 +21,6 @@ Some words of wisdom:
 
 Retro cartridge making tutorial:
         https://www.google.com/amp/s/thepoorstudenthobbyist.wordpress.com/2017/06/25/how-to-make-an-nes-reproduction-cartridge/amp/
+
+Nesdev:
+        wiki.nesdev.com/w/index.php/Nesdev_Wiki
