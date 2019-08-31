@@ -36,8 +36,7 @@ clearMem
 	LDA #$FE
 	STA $0200, x    ;move all sprites off screen
 	INX
-	CPX $100
-	BNE clearMem
+	BNE clearMem	;when x turns from $FF to $00 the zero flag is set
 	
 vblankwait2:      ; Second wait for vblank, PPU is ready after this
 	BIT $2002
@@ -61,7 +60,23 @@ loadPalletsLoop:
 	CPX #$20			;compare x with $20 = 32, which is the size of both pallets combined
 	BNE loadPalletsLoop	;Branch if Not Equal
 	
+;LOAD BACKGROUND
+LoadBackground:
+	LDA $2002             ; read PPU status to reset the high/low latch
+	LDA #$20
+	STA $2006             ; write the high byte of $2000 address
+	LDA #$00
+	STA $2006             ; write the low byte of $2000 address
+	LDX #$00              ; start out at 0
+LoadBackgroundLoop:
+	LDA background, x     ; load data from address (background + the value in x)
+	STA $2007             ; write to PPU
+	INX                   ; X = X + 1
+	CPX #$80              ; Compare X to hex $80, decimal 128 - copying 128 bytes
+	BNE LoadBackgroundLoop
 	
+	
+;LOAD TEST META SPRITE
 	LDX #$00
 loadFirstMetaSpriteLoop:
 	LDA TestSpriteData, x	;loads the data table to the sprite table in memory
