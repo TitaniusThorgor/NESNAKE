@@ -15,9 +15,22 @@ RESET:
 	LDX #$FF
 	TXS			;set up stack
 	INX			;now x = 0
+	;76543210
+	;| ||||||
+	;| ||||++- Base nametable address
+	;| ||||    (0 = $2000; 1 = $2400; 2 = $2800; 3 = $2C00)
+	;| |||+--- VRAM address increment per CPU read/write of PPUDATA
+	;| |||     (0: increment by 1, going across; 1: increment by 32, going down)
+	;| ||+---- Sprite pattern table address for 8x8 sprites (0: $0000; 1: $1000)
+	;| |+----- Background pattern table address (0: $0000; 1: $1000)
+	;| +------ Sprite size (0: 8x8; 1: 8x16)
+	;|
+	;+-------- Generate an NMI at the start of the
+	;            vertical blanking interval vblank (0: off; 1: on)
 	STX	$2000	;disable NMI for now
 	STX $2001	;disable rendering
 	STX $4010	;disable DMC IRQs
+	
 	
 vBlankWait1
 	BIT $2002		;BIT loads bit 7 into N, the bit apperently tells when the vBlank is done
@@ -38,9 +51,11 @@ clearMem
 	INX
 	BNE clearMem	;when x turns from $FF to $00 the zero flag is set
 	
+	
 vblankwait2:      ; Second wait for vblank, PPU is ready after this
 	BIT $2002
 	BPL vblankwait2
+	
 	
 ;LOAD PALLETS
 	;PPU: pallet recognition to adress $3F00
@@ -50,36 +65,50 @@ vblankwait2:      ; Second wait for vblank, PPU is ready after this
 	LDA #$00	;load the low byte
 	STA $2006	;write the low byte
 	;that code tells the PPU to set its address to $3F10, now the PPU data port at $2007 is ready to accept data
-	
 	;loop with x and feed PPU, use this method if the whole palette is changed, otherwise use $3F10 and 32 bytes up
 	LDX #$00
 loadPalletsLoop:
-	LDA PaletteData, x	;this syntax is very important, "load a with palette data with the offset of x: the index"
+	LDA paletteData, x	;this syntax is very important, "load a with palette data with the offset of x: the index"
 	STA $2007			;write the color one by one to the same adress
 	INX					;increment x
 	CPX #$20			;compare x with $20 = 32, which is the size of both pallets combined
 	BNE loadPalletsLoop	;Branch if Not Equal
 	
+	
 ;LOAD BACKGROUND
-LoadBackground:
 	LDA $2002             ; read PPU status to reset the high/low latch
 	LDA #$20
-	STA $2006             ; write the high byte of $2000 address
+	STA $2006             ; write the high byte of $2000 address (start of nametable 0 in PPU memory)
 	LDA #$00
 	STA $2006             ; write the low byte of $2000 address
 	LDX #$00              ; start out at 0
-LoadBackgroundLoop:
+loadBackgroundLoop:
 	LDA background, x     ; load data from address (background + the value in x)
 	STA $2007             ; write to PPU
 	INX                   ; X = X + 1
 	CPX #$80              ; Compare X to hex $80, decimal 128 - copying 128 bytes
-	BNE LoadBackgroundLoop
+	BNE loadBackgroundLoop
+	
+	
+;LOAD ATTRIBUTE TABLE
+	LDA $2002             ; read PPU status to reset the high/low latch
+	LDA #$23
+	STA $2006             ; write the high byte of $23C0 address
+	LDA #$C0
+	STA $2006             ; write the low byte of $23C0 address
+	LDX #$00              ; start out at 0
+loadAttributeLoop:
+	LDA attribute, x      ; load data from address (attribute + the value in x)
+	STA $2007             ; write to PPU
+	INX                   ; X = X + 1
+	CPX #$08              ; Compare X to hex $08, decimal 8 - copying 8 bytes
+	BNE loadAttributeLoop
 	
 	
 ;LOAD TEST META SPRITE
 	LDX #$00
 loadFirstMetaSpriteLoop:
-	LDA TestSpriteData, x	;loads the data table to the sprite table in memory
+	LDA testSpriteData, x	;loads the data table to the sprite table in memory
 	STA $0200, x
 	INX
 	CPX #$10
@@ -108,13 +137,6 @@ loadFirstMetaSpriteLoop:
 	LDA #%00010000
 	STA $2001
 	
-	;Controller setup
-	LDA #$01
-	STA $4016
-	LDA #$00
-	STA $4016
-	
-	
 	
 Forever:
 	JMP Forever		;infinite loop
@@ -132,6 +154,7 @@ NMI:
 
 	;sprite setup, it seems this has to be done every NMI interrupt, 64 in the pattern table
 	;sprite DMA setup (direct memory access), typically $0200-02FF (internal RAM) is used for this, which it is in this case
+;SPRITE NMI
 	LDA #$00	;low byte of $0200
 	STA $2003
 	LDA #$02
@@ -184,7 +207,7 @@ input2Loop:
 ;	STA $0203
 ;read1BDone:
 	
-	;try to move the meta sprite
+;MOVEMENT OF THE TEST META SPRITE
 	LDA $07F4
 	BEQ afterUp
 	LDX $0200
@@ -212,6 +235,18 @@ afterLeft:
 	INX
 	STX $0203
 afterRight:
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+;PPU CLEAN UP
+	LDA #%10010000	;enable NMI, sprites from pattern table 0, background from pattern table 1
+	STA $2000
+	LDA #%00011110
+	STA $2001		;enable sprites and background, no clipping on left side
+	LDA #$00
+	STA $2005		;tells PPU there is no background scrolling
+	STA $2005
 	
 ;;;;;;;;;;;;;;;;;;;;;;;;
 	
@@ -222,11 +257,30 @@ afterRight:
 	.bank 1
 	
 	.org $E000
-PaletteData:
-	.db $0F,$31,$32,$33,$0F,$35,$36,$37,$0F,$39,$3A,$3B,$0F,$3D,$3E,$0F  ;background palette data
-	.db $0F,$1C,$15,$14,$0F,$02,$38,$3C,$0F,$1C,$15,$14,$0F,$02,$38,$3C  ;sprite palette data
+paletteData:
+	.db $22,$29,$1A,$0F,  $22,$36,$17,$0F,  $22,$30,$21,$0F,  $22,$27,$17,$0F   ;background palette
+	.db $22,$1C,$15,$14,  $22,$02,$38,$3C,  $22,$1C,$15,$14,  $22,$02,$38,$3C   ;sprite palette
 	
-TestSpriteData:
+background:
+	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 1
+	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
+
+	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 2
+	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
+
+	.db $24,$24,$24,$24,$45,$45,$24,$24,$45,$45,$45,$45,$45,$45,$24,$24  ;;row 3
+	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$53,$54,$24,$24  ;;some brick tops
+
+	.db $24,$24,$24,$24,$47,$47,$24,$24,$47,$47,$47,$47,$47,$47,$24,$24  ;;row 4
+	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$55,$56,$24,$24  ;;brick bottoms
+
+attribute:
+	.db %00000000, %00010000, %01010000, %00010000, %00000000, %00000000, %00000000, %00110000
+
+	.db $24,$24,$24,$24, $47,$47,$24,$24 ,$47,$47,$47,$47, $47,$47,$24,$24 ,$24,$24,$24,$24 ,$24,$24,$24,$24, $24,$24,$24,$24, $55,$56,$24,$24  ;;brick bottoms
+  
+	
+testSpriteData:
 	.db $80, $32, $00, $80   ;sprite 0
 	.db $80, $33, $00, $88   ;sprite 1
 	.db $88, $34, $00, $80   ;sprite 2
