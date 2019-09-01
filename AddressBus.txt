@@ -18,9 +18,6 @@ $0000 - $07FF: internal RAM
 
 	The rest can be used for anything
 	
-	$07F0 - $07F7: player1
-	$07F8 - $07FF: player2
-	
 $2000 - $2007: PPU ports
 	$2000: PPU config anytime
 	76543210
