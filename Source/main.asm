@@ -7,7 +7,30 @@
 ;implementation of RESET
 	.bank 0
 	.org $C000
-RESET:
+	
+;VARIABLES
+	.rsset $0000
+
+	;use functions to get input
+playerOneInput	.rs 1
+playerTwoInput	.rs 1
+
+;CONSTANTS
+
+VBlankWait:
+	BIT $2002		;BIT loads bit 7 into N, the bit apperently tells when the vBlank is done
+	BPL VBlankWait	;BPL, Branch on PLus, checks the N register if it's 0
+	RTS				;ReTurn from Subroutine
+	
+PlayerOneInput:
+	LDA playerOneInput
+	RTS
+PlayerTwoInput:
+	LDA playerTwoInput
+	RTS
+	
+
+RESET:			;CPU starts reading here
 	SEI			;disable IRQ interrupts, external interrupts
 	CLD			;disable decimal mode, something the NES 6502 chip does not have
 	LDX #$40
@@ -31,14 +54,11 @@ RESET:
 	STX $2001	;disable rendering
 	STX $4010	;disable DMC IRQs
 	
-	
-vBlankWait1
-	BIT $2002		;BIT loads bit 7 into N, the bit apperently tells when the vBlank is done
-	BPL vBlankWait1	;BPL, Branch on PLus, checks the N register if it's 0
-	
-	
+	JSR VBlankWait
+
+;CLEAR MEMORY, MOVE SPRITES
+_clearMem:
 	LDA #$00
-clearMem
 	STA $0000, x
 	STA $0100, x
 	STA $0300, x
@@ -46,15 +66,12 @@ clearMem
 	STA $0500, x
 	STA $0600, x
 	STA $0700, x
-	LDA #$FE
-	STA $0200, x    ;move all sprites off screen
+	LDA #$FE		   ;move all sprites off screen
+	STA $0200, x
 	INX
-	BNE clearMem	;when x turns from $FF to $00 the zero flag is set
+	BNE _clearMem	;when x turns from $FF to $00 the zero flag is set
 	
-	
-vblankwait2:      ; Second wait for vblank, PPU is ready after this
-	BIT $2002
-	BPL vblankwait2
+	JSR VBlankWait
 	
 	
 ;LOAD PALLETS
@@ -67,12 +84,12 @@ vblankwait2:      ; Second wait for vblank, PPU is ready after this
 	;that code tells the PPU to set its address to $3F10, now the PPU data port at $2007 is ready to accept data
 	;loop with x and feed PPU, use this method if the whole palette is changed, otherwise use $3F10 and 32 bytes up
 	LDX #$00
-loadPalletsLoop:
+_loadPalletsLoop:
 	LDA paletteData, x	;this syntax is very important, "load a with palette data with the offset of x: the index"
 	STA $2007			;write the color one by one to the same adress
 	INX					;increment x
 	CPX #$20			;compare x with $20 = 32, which is the size of both pallets combined
-	BNE loadPalletsLoop	;Branch if Not Equal
+	BNE _loadPalletsLoop	;Branch if Not Equal
 	
 	
 ;LOAD BACKGROUND
@@ -82,12 +99,12 @@ loadPalletsLoop:
 	LDA #$00
 	STA $2006             ; write the low byte of $2000 address
 	LDX #$00              ; start out at 0
-loadBackgroundLoop:
+_loadBackgroundLoop:
 	LDA background, x     ; load data from address (background + the value in x)
 	STA $2007             ; write to PPU
 	INX                   ; X = X + 1
 	CPX #$80              ; Compare X to hex $80, decimal 128 - copying 128 bytes
-	BNE loadBackgroundLoop
+	BNE _loadBackgroundLoop
 	
 	
 ;LOAD ATTRIBUTE TABLE
@@ -97,22 +114,22 @@ loadBackgroundLoop:
 	LDA #$C0
 	STA $2006             ; write the low byte of $23C0 address
 	LDX #$00              ; start out at 0
-loadAttributeLoop:
+_loadAttributeLoop:
 	LDA attribute, x      ; load data from address (attribute + the value in x)
 	STA $2007             ; write to PPU
 	INX                   ; X = X + 1
 	CPX #$08              ; Compare X to hex $08, decimal 8 - copying 8 bytes
-	BNE loadAttributeLoop
+	BNE _loadAttributeLoop
 	
 	
 ;LOAD TEST META SPRITE
 	LDX #$00
-loadFirstMetaSpriteLoop:
+_loadFirstMetaSpriteLoop:
 	LDA testSpriteData, x	;loads the data table to the sprite table in memory
 	STA $0200, x
 	INX
 	CPX #$10
-	BNE loadFirstMetaSpriteLoop
+	BNE _loadFirstMetaSpriteLoop
 	
 	;sprite data: $0200 - 0240 with 4 bytes interval
 	;sprite data layout: 
@@ -127,7 +144,9 @@ loadFirstMetaSpriteLoop:
 	;  |+------- Flip sprite horizontally
 	;  +-------- Flip sprite vertically
 	;4 - X Position - horizontal position on the screen. $00 is the left side, anything above $F9 is off screen
-
+	
+	
+	
 	
 	;enable NMI, sprites from pattern table table 0
 	LDA #%10000000
@@ -140,8 +159,6 @@ loadFirstMetaSpriteLoop:
 	
 Forever:
 	JMP Forever		;infinite loop
-	
-;Subroutines goes here
 
 	
 ;NMI: graphics interrupt, the only "time indicator". Expected to be 60 fps, (50) for PAL
@@ -170,20 +187,20 @@ NMI:
 	STA $4016
 	
 	LDX #$00
-input1Loop:
+_input1Loop:
 	LDA $4016
 	AND #%00000001
 	STA $07F0, x
 	INX
 	CPX #$08
-	BNE input1Loop
-input2Loop:
+	BNE _input1Loop
+_input2Loop:
 	LDA $4017
 	AND #%00000001
 	STA $07F0, x
 	INX
 	CPX #$10
-	BNE input2Loop
+	BNE _input2Loop
 	
 ;player1A
 ;	LDA $4016
@@ -209,32 +226,32 @@ input2Loop:
 	
 ;MOVEMENT OF THE TEST META SPRITE
 	LDA $07F4
-	BEQ afterUp
+	BEQ _afterUp
 	LDX $0200
 	DEX
 	STX $0200
-afterUp:
+_afterUp:
 
 	LDA $07F5
-	BEQ afterDown
+	BEQ _afterDown
 	LDX $0200
 	INX
 	STX $0200
-afterDown:
+_afterDown:
 
 	LDA $07F6
-	BEQ afterLeft
+	BEQ _afterLeft
 	LDX $0203
 	DEX
 	STX $0203
-afterLeft:
+_afterLeft:
 
 	LDA $07F7
-	BEQ afterRight
+	BEQ _afterRight
 	LDX $0203
 	INX
 	STX $0203
-afterRight:
+_afterRight:
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
