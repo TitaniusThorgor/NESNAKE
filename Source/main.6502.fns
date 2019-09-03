@@ -1,4 +1,4 @@
-; main.asm
+; main.6502.asm
 PlayerOneInput                   = $C006
 paletteData                      = $E000
 _loadPalletsLoop                 = $C056

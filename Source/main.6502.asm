@@ -1,4 +1,4 @@
-;iNES header, this tell emulaotrs and such the layout of the file 
+;iNES header, this tell emulaotrs and such the layout of the file
 	.inesprg 1	;1x 16KB bank of PRG code
 	.ineschr 1	;1x 8KB bank of CHR data
 	.inesmap 0	;no bank swapping at the time
