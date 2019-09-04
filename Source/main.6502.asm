@@ -3,27 +3,38 @@
 	.ineschr 1	;1x 8KB bank of CHR data
 	.inesmap 0	;no bank swapping at the time
 	.inesmir 1	;enabels background mirroring
-	
-;implementation of RESET
-	.bank 0
-	.org $C000
-	
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;VARIABLES
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	.rsset $0000
+
+nmiDone	.rs 1
 
 ;use functions together with a bitwise AND to get input
 ; A   B   Select   Start   Up   Down   Left   Right
 playerOneInput	.rs 1
 playerTwoInput	.rs 1
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;CONSTANTS
 
-VBlankWait:
-	BIT $2002		;BIT loads bit 7 into N, the bit apperently tells when the vBlank is done
-	BPL VBlankWait	;BPL, Branch on PLus, checks the N register if it's 0
-	RTS				;ReTurn from Subroutine
-	
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;e.g. LEFTWALL =$01
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;RESET
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	.bank 0
+	.org $C000	
 RESET:			;CPU starts reading here
 	SEI			;disable IRQ interrupts, external interrupts
 	CLD			;disable decimal mode, something the NES 6502 chip does not have
@@ -149,19 +160,43 @@ _loadFirstMetaSpriteLoop:
 	;enable sprites
 	LDA #%00010000
 	STA $2001
-	
-	
-Forever:
-	JMP Forever		;infinite loop
 
+;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;Game Loop
+
+;;;;;;;;;;;;;;;;;;;;;;;;;
 	
+GameLoop:
+	LDA #$00
+	STA nmiDone
+
+	;Here, do the actual game
+
+
+Forever:
+	LDA nmiDone
+	BNE GameLoop
+	JMP Forever
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;Functions
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+VBlankWait:
+	BIT $2002		;BIT loads bit 7 into N, the bit apperently tells when the vBlank is done
+	BPL VBlankWait	;BPL, Branch on PLus, checks the N register if it's 0
+	RTS				;ReTurn from Subroutine
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 ;NMI: graphics interrupt, the only "time indicator". Expected to be 60 fps, (50) for PAL
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 NMI:
-	
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 	;sprite setup, it seems this has to be done every NMI interrupt, 64 in the pattern table
 	;sprite DMA setup (direct memory access), typically $0200-02FF (internal RAM) is used for this, which it is in this case
@@ -171,10 +206,9 @@ NMI:
 	LDA #$02
 	STA $4014	;sets the high byte
 	
-;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
 ;Input
-	;prepare buttons to send out signals
+	;latch buttons, prepare buttons to send out signals
 	LDA #$01
 	STA $4016
 	LDA #$00
@@ -241,11 +275,16 @@ _afterRight:
 	LDA #$00
 	STA $2005		;tells PPU there is no background scrolling
 	STA $2005
-	
-;;;;;;;;;;;;;;;;;;;;;;;;
-	
+
+
+	LDA #$01
+	STA nmiDone
 	RTI	;ReTurn from Interrupt
 	
+;;;;;;;;;;;;;;;;;;;;;;;;
+
+;Data
+
 ;;;;;;;;;;;;;;;;;;;;;;;;
 	
 	.bank 1
@@ -272,15 +311,15 @@ attribute:
 	.db %00000000, %00010000, %01010000, %00010000, %00000000, %00000000, %00000000, %00110000
 
 	.db $24,$24,$24,$24, $47,$47,$24,$24 ,$47,$47,$47,$47, $47,$47,$24,$24 ,$24,$24,$24,$24 ,$24,$24,$24,$24, $24,$24,$24,$24, $55,$56,$24,$24  ;;brick bottoms
-  
-	
+
+
 testSpriteData:
 	.db $80, $32, $00, $80   ;sprite 0
 	.db $80, $33, $00, $88   ;sprite 1
 	.db $88, $34, $00, $80   ;sprite 2
 	.db $88, $35, $00, $88   ;sprite 3
-	
-;;;;;;;;;;;;;;;;;;;;;
+
+
 
 	;vectors/interrupts
 	.org $FFFA	;this is where the adresses to the actual "functions" are being stored, I think. F - A + 1 = 6
