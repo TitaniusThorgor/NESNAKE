@@ -6,10 +6,22 @@
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;VARIABLES
+;POINTERS, ZERO PAGE
+;use camel-casing ending with either _lo or _hi
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 	.rsset $0000
+
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;VARIABLES
+;use camel-casing
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+	.rsset $0300
 
 nmiDone	.rs 1
 
@@ -21,6 +33,7 @@ playerTwoInput	.rs 1
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;CONSTANTS
+;use BIG words
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -161,11 +174,11 @@ _loadFirstMetaSpriteLoop:
 	LDA #%00010000
 	STA $2001
 
-;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;Game Loop
+;GAME LOOP
 
-;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	
 GameLoop:
 	LDA #$00
@@ -181,7 +194,8 @@ Forever:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;Functions
+;FUNCTIONS
+;use Pascal-casing
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -192,7 +206,8 @@ VBlankWait:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
-;NMI: graphics interrupt, the only "time indicator". Expected to be 60 fps, (50) for PAL
+;NMI
+;graphics interrupt, the only "time indicator". Expected to be 60 fps, (50) for PAL
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -283,7 +298,8 @@ _afterRight:
 	
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
-;Data
+;PRG DATA
+;use camel-casing
 
 ;;;;;;;;;;;;;;;;;;;;;;;;
 	
@@ -319,9 +335,13 @@ testSpriteData:
 	.db $88, $34, $00, $80   ;sprite 2
 	.db $88, $35, $00, $88   ;sprite 3
 
+;;;;;;;;;;;;;;;;;;;;;;;;
 
+;INTERRUPTS
+;also called vectors
 
-	;vectors/interrupts
+;;;;;;;;;;;;;;;;;;;;;;;;
+
 	.org $FFFA	;this is where the adresses to the actual "functions" are being stored, I think. F - A + 1 = 6
 	.dw NMI 	;"Update" vector, processor starts to read code here each graphics cycle if enabled
 	.dw RESET	;the processor will start exicuting here when the program starst as well as when the reset button is pressed 
