@@ -11,7 +11,8 @@
 ;VARIABLES
 	.rsset $0000
 
-	;use functions to get input
+;use functions together with a bitwise AND to get input
+; A   B   Select   Start   Up   Down   Left   Right
 playerOneInput	.rs 1
 playerTwoInput	.rs 1
 
@@ -21,13 +22,6 @@ VBlankWait:
 	BIT $2002		;BIT loads bit 7 into N, the bit apperently tells when the vBlank is done
 	BPL VBlankWait	;BPL, Branch on PLus, checks the N register if it's 0
 	RTS				;ReTurn from Subroutine
-	
-PlayerOneInput:
-	LDA playerOneInput
-	RTS
-PlayerTwoInput:
-	LDA playerTwoInput
-	RTS
 	
 
 RESET:			;CPU starts reading here
@@ -186,67 +180,50 @@ NMI:
 	LDA #$00
 	STA $4016
 	
-	LDX #$00
+	LDX #$08
 _input1Loop:
 	LDA $4016
-	AND #%00000001
-	STA $07F0, x
-	INX
-	CPX #$08
+	LSR A
+	ROL playerOneInput
+	DEX
 	BNE _input1Loop
+
+	LDX #$08
 _input2Loop:
 	LDA $4017
-	AND #%00000001
-	STA $07F0, x
-	INX
-	CPX #$10
+	LSR A
+	ROL playerTwoInput
+	DEX
 	BNE _input2Loop
 	
-;player1A
-;	LDA $4016
-;	AND #%00000001
-;	BEQ read1ADone	;branch
-;	
-;	LDA $0203       ; load sprite X position
-;	CLC             ; make sure the carry flag is clear
-;	ADC #$01        ; A = A + 1
-;	STA $0203       ; save sprite X position
-;read1ADone:
-
-;player1B
-;	LDA $4016
-;	AND #%00000001
-;	BEQ read1BDone
-;	
-;	LDA $0203
-;	SEC
-;	SBC #$01
-;	STA $0203
-;read1BDone:
 	
 ;MOVEMENT OF THE TEST META SPRITE
-	LDA $07F4
+	LDA playerOneInput
+	AND #%00001000
 	BEQ _afterUp
 	LDX $0200
 	DEX
 	STX $0200
 _afterUp:
 
-	LDA $07F5
+	LDA playerOneInput
+	AND #%00000100
 	BEQ _afterDown
 	LDX $0200
 	INX
 	STX $0200
 _afterDown:
 
-	LDA $07F6
+	LDA playerOneInput
+	AND #%00000010
 	BEQ _afterLeft
 	LDX $0203
 	DEX
 	STX $0203
 _afterLeft:
 
-	LDA $07F7
+	LDA playerOneInput
+	AND #%00000001
 	BEQ _afterRight
 	LDX $0203
 	INX
