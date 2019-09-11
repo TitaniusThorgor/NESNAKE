@@ -1,9 +1,0 @@
-; main.asm
-Forever                          = $C074
-clearMem                         = $C01B
-vBlankWait1                      = $C014
-loadPalletsLoop                  = $C04F
-PaletteData                      = $E000
-vblankwait2                      = $C03B
-RESET                            = $C000
-NMI                              = $C077

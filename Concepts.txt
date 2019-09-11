@@ -1,0 +1,3 @@
+Ending Sequence:
+	Gorefield flies above the castle, to bring him down to the top roof, the player needs to offer him the lasagna which functions as some sort of boss key.
+	When the player finds the lasagna (at the end of the game), an 8-bit version of life will change plays as the player fights through a gauntlet of enemies.

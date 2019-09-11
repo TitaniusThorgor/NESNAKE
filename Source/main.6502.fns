@@ -1,0 +1,21 @@
+; main.6502.asm
+paletteData                      = $E000
+_loadPalletsLoop                 = $C048
+Forever                          = $C0A3
+VBlankWait                       = $C0AB
+testSpriteData                   = $E0C8
+_afterUp                         = $C0EB
+_afterLeft                       = $C107
+_clearMem                        = $C017
+background                       = $E020
+_input2Loop                      = $C0D3
+attribute                        = $E0A0
+_loadBackgroundLoop              = $C062
+RESET                            = $C000
+GameLoop                         = $C09E
+_input1Loop                      = $C0C7
+NMI                              = $C0B1
+_loadAttributeLoop               = $C07C
+_loadFirstMetaSpriteLoop         = $C089
+_afterDown                       = $C0F9
+_afterRight                      = $C115
