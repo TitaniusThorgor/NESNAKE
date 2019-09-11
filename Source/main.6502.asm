@@ -1,51 +1,55 @@
-;iNES header, this tell emulaotrs and such the layout of the file
+;iNES HEADER
 	.inesprg 1	;1x 16KB bank of PRG code
 	.ineschr 1	;1x 8KB bank of CHR data
 	.inesmap 0	;no bank swapping at the time
 	.inesmir 1	;enabels background mirroring
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;NAMING
+;variables: camelCasing
+;pointers: camelCasing_lo and camelCasing_hi
+;data structures: camelCasing
+;temporary labels e.g. for loops: _camelCasing
+;subroutines/functions: PascalCasing
+;constants: SNAKE_CASING (with all-capital letters)
+;interrupts: SNAKE_CASING (same here)
 
-;POINTERS, ZERO PAGE
-;use camel-casing ending with either _lo or _hi
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-	.rsset $0000
-
-
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-;VARIABLES
-;use camel-casing
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	.rsset $0300
-
-nmiDone	.rs 1
-
-;use functions together with a bitwise AND to get input
-; A   B   Select   Start   Up   Down   Left   Right
-playerOneInput	.rs 1
-playerTwoInput	.rs 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;CONSTANTS
-;use BIG words
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+GAMESTATE_TITEL = $01		;gamestates
+GAMESTATE_PLAYING = $02
+GAMESTATE_GAMEOVER = $03
 
-;e.g. LEFTWALL =$01
+SNAKE_MAX_LENGTH = $10		;just for now
+SNAKE_SPEED_START = $01		;when 60, it moves 1 tile per frame
+WALL_LEFT = $02				;in tiles
+WALL_RIGHT = $10
 
 
+;POINTERS
+	.rsset $0000			;zero page
+
+backgroundPtr_lo	.rs 1
+backgroundPtr_hi	.rs 1
+
+;VARIABLES
+	.rsset $0300			;prevous to this, sprite DMA
+
+nmiDone				.rs 1
+playerOneInput		.rs 1		;use functions together with a bitwise AND to get input
+playerTwoInput		.rs 1		; A   B   Select   Start   Up   Down   Left   Right
+gameState			.rs 1
+
+snakeInputs .rs SNAKE_MAX_LENGTH
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
 
 ;RESET
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 	.bank 0
 	.org $C000	
 RESET:			;CPU starts reading here
@@ -74,6 +78,7 @@ RESET:			;CPU starts reading here
 	
 	JSR VBlankWait
 
+
 ;CLEAR MEMORY, MOVE SPRITES
 _clearMem:
 	LDA #$00
@@ -91,7 +96,7 @@ _clearMem:
 	
 	JSR VBlankWait
 	
-	
+
 ;LOAD PALLETS
 	;PPU: pallet recognition to adress $3F00
 	LDA $2002	;read PPU status to reset the high/low latch to high
@@ -103,7 +108,7 @@ _clearMem:
 	;loop with x and feed PPU, use this method if the whole palette is changed, otherwise use $3F10 and 32 bytes up
 	LDX #$00
 _loadPalletsLoop:
-	LDA paletteData, x	;this syntax is very important, "load a with palette data with the offset of x: the index"
+	LDA paletteData, x
 	STA $2007			;write the color one by one to the same adress
 	INX					;increment x
 	CPX #$20			;compare x with $20 = 32, which is the size of both pallets combined
@@ -111,17 +116,31 @@ _loadPalletsLoop:
 	
 	
 ;LOAD BACKGROUND
-	LDA $2002             ; read PPU status to reset the high/low latch
+	LDA $2002             ;read PPU status to reset the high/low latch
 	LDA #$20
-	STA $2006             ; write the high byte of $2000 address (start of nametable 0 in PPU memory)
+	STA $2006             ;write the high byte of $2000 address (start of nametable 0 in PPU memory)
 	LDA #$00
-	STA $2006             ; write the low byte of $2000 address
-	LDX #$00              ; start out at 0
+	STA $2006             ;write the low byte of $2000 address
+
+	LDA #$00
+	STA backgroundPtr_lo
+	LDA #HIGH (background)	;some NESASM3 exclusive features
+	STA backgroundPtr_hi
+
+	LDX #$00
+	LDY #$00
 _loadBackgroundLoop:
-	LDA background, x     ; load data from address (background + the value in x)
-	STA $2007             ; write to PPU
-	INX                   ; X = X + 1
-	CPX #$80              ; Compare X to hex $80, decimal 128 - copying 128 bytes
+	LDA [backgroundPtr_lo], y
+	STA $2007
+
+	INY
+	CPY #$00
+	BNE _loadBackgroundLoop	;let it loop, let it loop
+
+	INC backgroundPtr_hi	;increment memory (makes the pointer as a whole go up 256 bytes)
+	INX
+
+	CPX #$04	;make the 256 loop four times
 	BNE _loadBackgroundLoop
 	
 	
@@ -163,9 +182,6 @@ _loadFirstMetaSpriteLoop:
 	;  +-------- Flip sprite vertically
 	;4 - X Position - horizontal position on the screen. $00 is the left side, anything above $F9 is off screen
 	
-	
-	
-	
 	;enable NMI, sprites from pattern table table 0
 	LDA #%10000000
 	STA $2000
@@ -174,13 +190,10 @@ _loadFirstMetaSpriteLoop:
 	LDA #%00010000
 	STA $2001
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;GAME LOOP
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-	
-GameLoop:
+_gameLoop:
 	LDA #$00
 	STA nmiDone
 
@@ -189,30 +202,25 @@ GameLoop:
 
 Forever:
 	LDA nmiDone
-	BNE GameLoop
+	BNE _gameLoop
 	JMP Forever
-
+;END GAME LOOP
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+
+
 
 ;FUNCTIONS
-;use Pascal-casing
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 VBlankWait:
 	BIT $2002		;BIT loads bit 7 into N, the bit apperently tells when the vBlank is done
 	BPL VBlankWait	;BPL, Branch on PLus, checks the N register if it's 0
 	RTS				;ReTurn from Subroutine
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;NMI
 ;graphics interrupt, the only "time indicator". Expected to be 60 fps, (50) for PAL
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
 NMI:
-
 	;sprite setup, it seems this has to be done every NMI interrupt, 64 in the pattern table
 	;sprite DMA setup (direct memory access), typically $0200-02FF (internal RAM) is used for this, which it is in this case
 ;SPRITE NMI
@@ -222,7 +230,7 @@ NMI:
 	STA $4014	;sets the high byte
 	
 	
-;Input
+;INPUT
 	;latch buttons, prepare buttons to send out signals
 	LDA #$01
 	STA $4016
@@ -280,8 +288,6 @@ _afterLeft:
 _afterRight:
 
 
-;;;;;;;;;;;;;;;;;;;;;;;;
-
 ;PPU CLEAN UP
 	LDA #%10010000	;enable NMI, sprites from pattern table 0, background from pattern table 1
 	STA $2000
@@ -295,38 +301,36 @@ _afterRight:
 	LDA #$01
 	STA nmiDone
 	RTI	;ReTurn from Interrupt
-	
-;;;;;;;;;;;;;;;;;;;;;;;;
+
 
 ;PRG DATA
 ;use camel-casing
-
-;;;;;;;;;;;;;;;;;;;;;;;;
-	
 	.bank 1
-	
 	.org $E000
 paletteData:
 	.db $22,$29,$1A,$0F,  $22,$36,$17,$0F,  $22,$30,$21,$0F,  $22,$27,$17,$0F   ;background palette
 	.db $22,$1C,$15,$14,  $22,$02,$38,$3C,  $22,$1C,$15,$14,  $22,$02,$38,$3C   ;sprite palette
-	
+
+;save nametables and attributes in different files
 background:
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 1
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 2
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-
-	.db $24,$24,$24,$24,$45,$45,$24,$24,$45,$45,$45,$45,$45,$45,$24,$24  ;;row 3
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$53,$54,$24,$24  ;;some brick tops
-
-	.db $24,$24,$24,$24,$47,$47,$24,$24,$47,$47,$47,$47,$47,$47,$24,$24  ;;row 4
-	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$55,$56,$24,$24  ;;brick bottoms
+	.incbin "SnakeBackground.nam"
+;	.db $24,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F,$10,$24,$24,$24,$24,$24,$24  ;;row 1
+;	.db $66,$66,$56,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
+;
+;	.db $88,$31,$98,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 2
+;	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
+;
+;	.db $78,$20,$80,$76,$66,$45,$24,$24,$45,$45,$45,$45,$45,$45,$24,$24  ;;row 3
+;	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$53,$54,$24,$24  ;;some brick tops
+;
+;	.db $24,$24,$24,$24,$47,$47,$24,$24,$47,$47,$47,$47,$47,$47,$24,$24  ;;row 4
+;	.db $69,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$55,$56,$24,$24  ;;brick bottoms
 
 attribute:
-	.db %00000000, %00010000, %01010000, %00010000, %00000000, %00000000, %00000000, %00110000
-
-	.db $24,$24,$24,$24, $47,$47,$24,$24 ,$47,$47,$47,$47, $47,$47,$24,$24 ,$24,$24,$24,$24 ,$24,$24,$24,$24, $24,$24,$24,$24, $55,$56,$24,$24  ;;brick bottoms
+	.incbin "SnakeBackground.atr"
+;	.db %00000011, %00010000, %01010000, %00010000, %00000000, %00000000, %00000000, %00110000
+;
+;	.db $24,$24,$24,$24, $47,$47,$24,$24 ,$47,$47,$47,$47, $47,$47,$24,$24 ,$24,$24,$24,$24 ,$24,$24,$24,$24, $24,$24,$24,$24, $55,$56,$24,$24  ;;brick bottoms
 
 
 testSpriteData:
@@ -335,14 +339,9 @@ testSpriteData:
 	.db $88, $34, $00, $80   ;sprite 2
 	.db $88, $35, $00, $88   ;sprite 3
 
-;;;;;;;;;;;;;;;;;;;;;;;;
 
-;INTERRUPTS
-;also called vectors
-
-;;;;;;;;;;;;;;;;;;;;;;;;
-
-	.org $FFFA	;this is where the adresses to the actual "functions" are being stored, I think. F - A + 1 = 6
+;INTERRUPTS OR VECTORS
+	.org $FFFA
 	.dw NMI 	;"Update" vector, processor starts to read code here each graphics cycle if enabled
 	.dw RESET	;the processor will start exicuting here when the program starst as well as when the reset button is pressed 
 	.dw 0		;IRQs won't be used
