@@ -19,9 +19,9 @@
 
 ;CONSTANTS
 
-GAMESTATE_TITEL = $01		;gamestates
-GAMESTATE_PLAYING = $02
-GAMESTATE_GAMEOVER = $03
+GAME_STATE_TITLE = $01		;gamestates
+GAME_STATE_PLAYING = $02
+GAME_STATE_GAMEOVER = $03
 
 SNAKE_MAX_LENGTH = $10		;just for now
 SNAKE_SPEED_START = $01		;when 60, it moves 1 tile per frame
@@ -36,14 +36,16 @@ backgroundPtr_lo	.rs 1
 backgroundPtr_hi	.rs 1
 
 ;VARIABLES
-	.rsset $0300			;prevous to this, sprite DMA
+	.rsset $0300			;prevous to this: sprite DMA
 
 nmiDone				.rs 1
 playerOneInput		.rs 1		;use functions together with a bitwise AND to get input
 playerTwoInput		.rs 1		; A   B   Select   Start   Up   Down   Left   Right
-gameState			.rs 1
+gameState			.rs 1		;use states defined as constants
 
 snakeInputs .rs SNAKE_MAX_LENGTH
+snakeTicksToMove 	.rs 1
+snakeTicks			.rs 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -145,17 +147,17 @@ _loadBackgroundLoop:
 	
 	
 ;LOAD ATTRIBUTE TABLE
-	LDA $2002             ; read PPU status to reset the high/low latch
+	LDA $2002             ;read PPU status to reset the high/low latch
 	LDA #$23
-	STA $2006             ; write the high byte of $23C0 address
+	STA $2006             ;write the high byte of $23C0 address
 	LDA #$C0
-	STA $2006             ; write the low byte of $23C0 address
-	LDX #$00              ; start out at 0
+	STA $2006             ;write the low byte of $23C0 address
+	LDX #$00
 _loadAttributeLoop:
-	LDA attribute, x      ; load data from address (attribute + the value in x)
-	STA $2007             ; write to PPU
-	INX                   ; X = X + 1
-	CPX #$08              ; Compare X to hex $08, decimal 8 - copying 8 bytes
+	LDA attribute, x
+	STA $2007             ;write to PPU
+	INX
+	CPX #$20              ;8*4= $20 which is 32 in dec
 	BNE _loadAttributeLoop
 	
 	
@@ -199,23 +201,61 @@ _gameLoop:
 
 	;Here, do the actual game
 
+	;states
+	LDA gameState
 
-Forever:
-	LDA nmiDone
-	BNE _gameLoop
+	CMP GAME_STATE_PLAYING
+	BEQ _gameStatePlaying
+
+	CMP GAME_STATE_TITLE
+	BEQ _gameStateTitle
+
+	CMP _gameStateGameOver
+	BEQ _gameStateGameOver
+
 	JMP Forever
-;END GAME LOOP
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
+
+_gameStatePlaying:
+	LDX snakeTicks
+	INX
+	CPX snakeTicksToMove
+	BNE AfterTick
+
+	;if snake moves:
+
+
+AfterTick:
+	;do things such as updating sprites
+
+	JMP Forever
+
+_gameStateTitle:
+	LDA GAME_STATE_PLAYING
+	STA gameState
+
+	JMP Forever
+
+_gameStateGameOver:
+	JMP RESET		;I don't know if this will work
+
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
 
 ;FUNCTIONS
 
+Forever:
+	LDA nmiDone
+	BNE _gameLoop
+	JMP Forever
+
 VBlankWait:
 	BIT $2002		;BIT loads bit 7 into N, the bit apperently tells when the vBlank is done
 	BPL VBlankWait	;BPL, Branch on PLus, checks the N register if it's 0
 	RTS				;ReTurn from Subroutine
+
 
 
 ;NMI
