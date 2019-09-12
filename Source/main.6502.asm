@@ -6,11 +6,12 @@
 
 ;NAMING
 ;variables: camelCasing
-;pointers: camelCasing_lo and camelCasing_hi
+;pointers: _camelCasing_lo and _camelCasing_hi
 ;data structures: camelCasing
 ;temporary labels e.g. for loops: _camelCasing
 ;subroutines/functions: PascalCasing
 ;constants: SNAKE_CASING (with all-capital letters)
+;graphics adresses: SNAKE_CASING_sp and SNAKE_CASING_ba
 ;interrupts: SNAKE_CASING (same here)
 
 
@@ -23,17 +24,20 @@ GAME_STATE_TITLE = $01		;gamestates
 GAME_STATE_PLAYING = $02
 GAME_STATE_GAMEOVER = $03
 
-SNAKE_MAX_LENGTH = $10		;just for now
 SNAKE_SPEED_START = $01		;when 60, it moves 1 tile per frame
-WALL_LEFT = $02				;in tiles
-WALL_RIGHT = $10
+WALL_TOP = $02				;in tiles
+WALL_BOTTOM = $12
+WALL_LEFT = $02
+WALL_RIGHT = $12
 
+	.include "backgroundConstants.6502.asm"
+	.include "spriteConstants.6502.asm"
 
 ;POINTERS
 	.rsset $0000			;zero page
 
-backgroundPtr_lo	.rs 1
-backgroundPtr_hi	.rs 1
+_backgroundPtr_lo	.rs 1
+_backgroundPtr_hi	.rs 1
 
 ;VARIABLES
 	.rsset $0300			;prevous to this: sprite DMA
@@ -43,9 +47,13 @@ playerOneInput		.rs 1		;use functions together with a bitwise AND to get input
 playerTwoInput		.rs 1		; A   B   Select   Start   Up   Down   Left   Right
 gameState			.rs 1		;use states defined as constants
 
-snakeInputs .rs SNAKE_MAX_LENGTH
 snakeTicksToMove 	.rs 1
 snakeTicks			.rs 1
+
+snakeInputs 		.rs (WALL_BOTTOM - WALL_TOP)*(WALL_RIGHT - WALL_LEFT)
+
+snakeLength_lo		.rs 1
+snakeLength_hi		.rs 1
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -53,7 +61,7 @@ snakeTicks			.rs 1
 
 ;RESET
 	.bank 0
-	.org $C000	
+	.org $C000
 RESET:			;CPU starts reading here
 	SEI			;disable IRQ interrupts, external interrupts
 	CLD			;disable decimal mode, something the NES 6502 chip does not have
@@ -125,21 +133,21 @@ _loadPalletsLoop:
 	STA $2006             ;write the low byte of $2000 address
 
 	LDA #$00
-	STA backgroundPtr_lo
+	STA _backgroundPtr_lo
 	LDA #HIGH (background)	;some NESASM3 exclusive features
-	STA backgroundPtr_hi
+	STA _backgroundPtr_hi
 
 	LDX #$00
 	LDY #$00
 _loadBackgroundLoop:
-	LDA [backgroundPtr_lo], y
+	LDA [_backgroundPtr_lo], y
 	STA $2007
 
 	INY
 	CPY #$00
 	BNE _loadBackgroundLoop	;let it loop, let it loop
 
-	INC backgroundPtr_hi	;increment memory (makes the pointer as a whole go up 256 bytes)
+	INC _backgroundPtr_hi	;increment memory (makes the pointer as a whole go up 256 bytes)
 	INX
 
 	CPX #$04	;make the 256 loop four times
@@ -222,19 +230,23 @@ _gameStatePlaying:
 	CPX snakeTicksToMove
 	BNE AfterTick
 
-	;if snake moves:
-
+	;Tick, if snake moves
+	;snakeInputs
+	
+	
 
 AfterTick:
 	;do things such as updating sprites
 
 	JMP Forever
 
+
 _gameStateTitle:
 	LDA GAME_STATE_PLAYING
 	STA gameState
 
 	JMP Forever
+
 
 _gameStateGameOver:
 	JMP RESET		;I don't know if this will work
@@ -348,8 +360,9 @@ _afterRight:
 	.bank 1
 	.org $E000
 paletteData:
-	.db $22,$29,$1A,$0F,  $22,$36,$17,$0F,  $22,$30,$21,$0F,  $22,$27,$17,$0F   ;background palette
-	.db $22,$1C,$15,$14,  $22,$02,$38,$3C,  $22,$1C,$15,$14,  $22,$02,$38,$3C   ;sprite palette
+	.incbin "persistant.pal"
+	;.db $22,$29,$1A,$0F,  $22,$36,$17,$0F,  $22,$30,$21,$0F,  $22,$27,$17,$0F   ;background palette
+	;.db $22,$1C,$15,$14,  $22,$02,$38,$3C,  $22,$1C,$15,$14,  $22,$02,$38,$3C   ;sprite palette
 
 ;save nametables and attributes in different files
 background:
@@ -386,6 +399,7 @@ testSpriteData:
 	.dw RESET	;the processor will start exicuting here when the program starst as well as when the reset button is pressed 
 	.dw 0		;IRQs won't be used
 	
+;GRAPHICS BANKS
 	.bank 2		;graphics bank
 	.org $0000
-	.incbin "mario.chr"		;includes 8KB graphics file
+	.incbin "main.chr"		;includes 8KB graphics file
