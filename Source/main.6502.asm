@@ -30,8 +30,8 @@ WALL_BOTTOM = $12
 WALL_LEFT = $02
 WALL_RIGHT = $12
 
-	.include "backgroundConstants.6502.asm"
-	.include "spriteConstants.6502.asm"
+	.include "Constants/backgroundConstants.6502.asm"
+	.include "Constants/backgroundConstants.6502.asm"
 
 ;POINTERS
 	.rsset $0000			;zero page
@@ -233,7 +233,9 @@ _gameStatePlaying:
 	;Tick, if snake moves
 	;snakeInputs
 	
+	;loop through the 16 bit array/ array of arrays
 	
+
 
 AfterTick:
 	;do things such as updating sprites
@@ -360,13 +362,13 @@ _afterRight:
 	.bank 1
 	.org $E000
 paletteData:
-	.incbin "persistant.pal"
+	.incbin "Palettes/persistant.pal"
 	;.db $22,$29,$1A,$0F,  $22,$36,$17,$0F,  $22,$30,$21,$0F,  $22,$27,$17,$0F   ;background palette
 	;.db $22,$1C,$15,$14,  $22,$02,$38,$3C,  $22,$1C,$15,$14,  $22,$02,$38,$3C   ;sprite palette
 
 ;save nametables and attributes in different files
 background:
-	.incbin "SnakeBackground.nam"
+	.incbin "Backgrounds/snake.nam"
 ;	.db $24,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F,$10,$24,$24,$24,$24,$24,$24  ;;row 1
 ;	.db $66,$66,$56,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
 ;
@@ -380,7 +382,7 @@ background:
 ;	.db $69,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$55,$56,$24,$24  ;;brick bottoms
 
 attribute:
-	.incbin "SnakeBackground.atr"
+	.incbin "Backgrounds/snake.atr"
 ;	.db %00000011, %00010000, %01010000, %00010000, %00000000, %00000000, %00000000, %00110000
 ;
 ;	.db $24,$24,$24,$24, $47,$47,$24,$24 ,$47,$47,$47,$47, $47,$47,$24,$24 ,$24,$24,$24,$24 ,$24,$24,$24,$24, $24,$24,$24,$24, $55,$56,$24,$24  ;;brick bottoms
