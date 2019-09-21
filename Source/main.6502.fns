@@ -1,4 +1,4 @@
-; C:\Users\Atea\Desktop\Gymnasiet2\NES_Homebrew\Project_Gramfeld\Source\main.6502.asm
+; C:\Users\willi\Documents\NES_Homebrew\Project_Gramfeld\Source\main.6502.asm
 _gameStateTitle                  = $C0EB
 paletteData                      = $E000
 _gameStatePlaying                = $C0CB
