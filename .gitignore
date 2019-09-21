@@ -1,0 +1,4 @@
+#Ignores NES rom
+*.nes
+#Ignores the fns file
+*.fns
