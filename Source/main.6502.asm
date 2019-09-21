@@ -29,6 +29,7 @@ WALL_TOP = $02				;in tiles
 WALL_BOTTOM = $12
 WALL_LEFT = $02
 WALL_RIGHT = $12
+SNAKE_LENGHT = $20
 
 	.include "Constants/backgroundConstants.6502.asm"
 	.include "Constants/backgroundConstants.6502.asm"
@@ -39,6 +40,7 @@ WALL_RIGHT = $12
 _backgroundPtr_lo	.rs 1
 _backgroundPtr_hi	.rs 1
 
+
 ;VARIABLES
 	.rsset $0300			;prevous to this: sprite DMA
 
@@ -47,11 +49,14 @@ playerOneInput		.rs 1		;use functions together with a bitwise AND to get input
 playerTwoInput		.rs 1		; A   B   Select   Start   Up   Down   Left   Right
 gameState			.rs 1		;use states defined as constants
 
+;ticks in this case: frames between that the snake moves
 snakeTicksToMove 	.rs 1
 snakeTicks			.rs 1
 
-snakeInputs 		.rs (WALL_BOTTOM - WALL_TOP)*(WALL_RIGHT - WALL_LEFT)
+;3bits for one input, 1bit for who knows what
+snakeInputs 		.rs (SNAKE_LENGHT/2) ;(WALL_BOTTOM - WALL_TOP)*(WALL_RIGHT - WALL_LEFT)
 
+;increases after eating fruits
 snakeLength_lo		.rs 1
 snakeLength_hi		.rs 1
 
@@ -234,7 +239,24 @@ _gameStatePlaying:
 	;snakeInputs
 	
 	;loop through the 16 bit array/ array of arrays
-	
+_snakeInputsLoopCounter	.rs 1
+	LDX #$00
+	LDY snakeInputs	;store until end of the loop
+_snakeInputsLoop:
+	;compare high and low individually
+	CPX #HIGH ()
+	;;;;;
+	LDA snakeInputs, X
+
+	;two checks
+	INX
+	BEQ _snakeInputsLoop
+	LDA _snakeInputsLoopCounter
+	CLC
+	ADC #$01
+
+	JMP _snakeInputsLoop
+
 
 
 AfterTick:
