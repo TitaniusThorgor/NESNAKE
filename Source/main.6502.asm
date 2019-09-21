@@ -242,9 +242,9 @@ _gameStatePlaying:
 _snakeInputsLoopCounter	.rs 1
 	LDX #$00
 	LDY snakeInputs	;store until end of the loop
-_snakeInputsLoop:
+;_snakeInputsLoop:
 	;compare high and low individually
-	CPX #HIGH ()
+	;CPX #HIGH ()
 	;;;;;
 	LDA snakeInputs, X
 

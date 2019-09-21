@@ -4,7 +4,6 @@ paletteData                      = $E000
 _gameStatePlaying                = $C0CB
 _loadPalletsLoop                 = $C048
 Forever                          = $C0F7
-_snakeInputsLoop                 = $C0D9
 VBlankWait                       = $C0FF
 testSpriteData                   = $E410
 _afterUp                         = $C13F
