@@ -6,7 +6,7 @@
 
 ;NAMING
 ;variables: camelCasing
-;pointers: _camelCasing_lo and _camelCasing_hi
+;pointers: camelCasing_lo and camelCasing_hi
 ;data structures: camelCasing
 ;temporary labels e.g. for loops: _camelCasing
 ;subroutines/functions: PascalCasing
@@ -24,12 +24,14 @@ GAME_STATE_TITLE = $01		;gamestates
 GAME_STATE_PLAYING = $02
 GAME_STATE_GAMEOVER = $03
 
-SNAKE_SPEED_START = $01		;when 60, it moves 1 tile per frame
 WALL_TOP = $02				;in tiles
 WALL_BOTTOM = $12
 WALL_LEFT = $02
 WALL_RIGHT = $12
-SNAKE_LENGHT = $20
+
+SNAKE_SPEED_START = $01		;when 60, it moves 1 tile per frame
+SNAKE_MAX_LENGHT_lo = $20
+SNAKE_MAX_LENGHT_hi = $00
 
 	.include "Constants/backgroundConstants.6502.asm"
 	.include "Constants/backgroundConstants.6502.asm"
@@ -37,16 +39,18 @@ SNAKE_LENGHT = $20
 ;POINTERS
 	.rsset $0000			;zero page
 
-_backgroundPtr_lo	.rs 1
-_backgroundPtr_hi	.rs 1
+backgroundPtr_lo	.rs 1
+backgroundPtr_hi	.rs 1
 
+snakeInputCounter_lo	.rs 1
+snakeInputCounter_hi	.rs 1
 
 ;VARIABLES
 	.rsset $0300			;prevous to this: sprite DMA
 
-nmiDone				.rs 1
 playerOneInput		.rs 1		;use functions together with a bitwise AND to get input
 playerTwoInput		.rs 1		; A   B   Select   Start   Up   Down   Left   Right
+nmiDone				.rs 1
 gameState			.rs 1		;use states defined as constants
 
 ;ticks in this case: frames between that the snake moves
@@ -54,7 +58,8 @@ snakeTicksToMove 	.rs 1
 snakeTicks			.rs 1
 
 ;3bits for one input, 1bit for who knows what
-snakeInputs 		.rs (SNAKE_LENGHT/2) ;(WALL_BOTTOM - WALL_TOP)*(WALL_RIGHT - WALL_LEFT)
+snakeInputs 		.rs (SNAKE_MAX_LENGHT_lo + (SNAKE_MAX_LENGHT_hi *16)) ;(WALL_BOTTOM - WALL_TOP)*(WALL_RIGHT - WALL_LEFT)
+snakeInputsTemp		.rs 1
 
 ;increases after eating fruits
 snakeLength_lo		.rs 1
@@ -138,25 +143,24 @@ _loadPalletsLoop:
 	STA $2006             ;write the low byte of $2000 address
 
 	LDA #$00
-	STA _backgroundPtr_lo
+	STA backgroundPtr_lo
 	LDA #HIGH (background)	;some NESASM3 exclusive features
-	STA _backgroundPtr_hi
+	STA backgroundPtr_hi
 
 	LDX #$00
 	LDY #$00
-_loadBackgroundLoop:
-	LDA [_backgroundPtr_lo], y
+_loadStartupBackgroundLoop:
+	LDA [backgroundPtr_lo], y
 	STA $2007
 
 	INY
-	CPY #$00
-	BNE _loadBackgroundLoop	;let it loop, let it loop
+	BNE _loadStartupBackgroundLoop	;let it loop, let it loop, when zero
 
-	INC _backgroundPtr_hi	;increment memory (makes the pointer as a whole go up 256 bytes)
+	INC backgroundPtr_hi	;increment memory (makes the pointer as a whole go up 256 bytes)
 	INX
 
 	CPX #$04	;make the 256 loop four times
-	BNE _loadBackgroundLoop
+	BNE _loadStartupBackgroundLoop
 	
 	
 ;LOAD ATTRIBUTE TABLE
@@ -223,7 +227,7 @@ _gameLoop:
 	CMP GAME_STATE_TITLE
 	BEQ _gameStateTitle
 
-	CMP _gameStateGameOver
+	CMP GAME_STATE_GAMEOVER
 	BEQ _gameStateGameOver
 
 	JMP Forever
@@ -235,28 +239,47 @@ _gameStatePlaying:
 	CPX snakeTicksToMove
 	BNE AfterTick
 
+
 	;Tick, if snake moves
-	;snakeInputs
-	
-	;loop through the 16 bit array/ array of arrays
-_snakeInputsLoopCounter	.rs 1
-	LDX #$00
-	LDY snakeInputs	;store until end of the loop
-_snakeInputsLoop:
-	;compare high and low individually
-	;CPX #HIGH ()
-	;;;;;
-	LDA snakeInputs, X
+	;snakeInputs, loop backwards
 
-	;two checks
-	INX
-	BEQ _snakeInputsLoop
-	LDA _snakeInputsLoopCounter
+	;;;;;; #LOW (snakeInputs), #HIGH (snakeInputs)
+	LDA #LOW (snakeInputs)
+	STA snakeInputCounter_lo
+	LDA #HIGH (snakeInputs)
 	CLC
-	ADC #$01
+	ADC snakeLength_hi	;current length of the snake, rest is irrelevant
+	STA snakeInputCounter_hi
+	LDY snakeLength_lo	;current length of the snake, rest is irrelevant
 
-	JMP _snakeInputsLoop
+	;do input stuff..., save value into temp before starting loop
+	LDA snakeInputs
+	STA snakeInputsTemp
+	;feed input
+	LDA playerOneInput
+	STA snakeInputs
+_snakeInputLoop:
+	;store this element's input, write the previous input
+	LDX snakeInputsTemp
+	LDA [snakeInputCounter_lo], y
+	STA snakeInputsTemp
+	TXA											;transfer X to A
+	STA [snakeInputCounter_lo], y
 
+	;continue with the loop, this is a 16-bit loop
+	DEY
+	CPY #$FF
+	BNE _snakeInputLoop			;if not zero
+
+	LDX snakeInputCounter_hi
+	DEX
+	CMP #HIGH (snakeInputs) - 1	;yes it works
+	BNE _snakeInputLoop
+	;past the boundary, the loop is done
+
+
+
+	;;;;;;
 
 
 AfterTick:
@@ -304,8 +327,8 @@ NMI:
 	STA $2003
 	LDA #$02
 	STA $4014	;sets the high byte
-	
-	
+
+
 ;INPUT
 	;latch buttons, prepare buttons to send out signals
 	LDA #$01
@@ -328,40 +351,34 @@ _input2Loop:
 	ROL playerTwoInput
 	DEX
 	BNE _input2Loop
+
+
+;NAMETABLE UPDATE
+	LDA $2002             ;read PPU status to reset the high/low latch
+	LDA #$20
+	STA $2006             ;write the high byte of $2000 address (start of nametable 0 in PPU memory)
+	LDA #$00
+	STA $2006             ;write the low byte of $2000 address
+
+	LDA #$00
+	STA backgroundPtr_lo
+	LDA #HIGH (background)	;some NESASM3 exclusive features
+	STA backgroundPtr_hi
 	
-	
-;MOVEMENT OF THE TEST META SPRITE
-	LDA playerOneInput
-	AND #%00001000
-	BEQ _afterUp
-	LDX $0200
-	DEX
-	STX $0200
-_afterUp:
+	LDX #$00
+	LDY #$00
+_loadBackgroundLoop:
+	LDA [backgroundPtr_lo], y
+	STA $2007
 
-	LDA playerOneInput
-	AND #%00000100
-	BEQ _afterDown
-	LDX $0200
+	INY
+	BNE _loadBackgroundLoop	;let it loop, let it loop, when zero
+
+	INC backgroundPtr_hi	;increment memory (makes the pointer as a whole go up 256 bytes)
 	INX
-	STX $0200
-_afterDown:
 
-	LDA playerOneInput
-	AND #%00000010
-	BEQ _afterLeft
-	LDX $0203
-	DEX
-	STX $0203
-_afterLeft:
-
-	LDA playerOneInput
-	AND #%00000001
-	BEQ _afterRight
-	LDX $0203
-	INX
-	STX $0203
-_afterRight:
+	CPX #$04	;make the 256 loop four times
+	BNE _loadBackgroundLoop
 
 
 ;PPU CLEAN UP
@@ -377,6 +394,7 @@ _afterRight:
 	LDA #$01
 	STA nmiDone
 	RTI	;ReTurn from Interrupt
+
 
 
 ;PRG DATA
