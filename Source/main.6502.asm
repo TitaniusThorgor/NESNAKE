@@ -222,14 +222,20 @@ _gameLoop:
 	LDA gameState
 
 	CMP GAME_STATE_PLAYING
-	BEQ _gameStatePlaying
+	BNE Forever
+	JSR _gameStatePlaying
 
 	CMP GAME_STATE_TITLE
-	BEQ _gameStateTitle
+	BNE Forever
+	JSR _gameStateTitle
 
 	CMP GAME_STATE_GAMEOVER
-	BEQ _gameStateGameOver
+	BNE Forever
+	JSR _gameStateGameOver
 
+Forever:
+	LDA nmiDone
+	BNE _gameLoop
 	JMP Forever
 
 
@@ -278,25 +284,64 @@ _snakeInputLoop:
 	;past the boundary, the loop is done
 
 
+	;NAMETABLE UPDATE
+	LDA $2002             ;read PPU status to reset the high/low latch
+	LDA #$20
+	STA $2006             ;write the high byte of $2000 address (start of nametable 0 in PPU memory)
+	LDA #$00
+	STA $2006             ;write the low byte of $2000 address
 
+	LDA #$00
+	STA backgroundPtr_lo
+	LDA #HIGH (background)	;some NESASM3 exclusive features
+	STA backgroundPtr_hi
+	
+	LDX #$00
+	LDY #$00
+_loadBackgroundLoop:
+	LDA [backgroundPtr_lo], y
+	STA $2007
+
+	INY
+	BNE _loadBackgroundLoop	;let it loop, let it loop, when zero
+
+	INC backgroundPtr_hi	;increment memory (makes the pointer as a whole go up 256 bytes)
+	INX
+
+	CPX #$04	;make the 256 loop four times
+	BNE _loadBackgroundLoop
+
+;UPDATE ATTRIBUTE TABLE
+	LDA $2002             ;read PPU status to reset the high/low latch
+	LDA #$23
+	STA $2006             ;write the high byte of $23C0 address
+	LDA #$C0
+	STA $2006             ;write the low byte of $23C0 address
+	LDX #$00
+_loadAttributeLoop:
+	LDA attribute, x
+	STA $2007             ;write to PPU
+	INX
+	CPX #$20              ;8*4= $20 which is 32 in dec
+	BNE _loadAttributeLoop
 	;;;;;;
 
 
 AfterTick:
 	;do things such as updating sprites
 
-	JMP Forever
+	RTS
 
 
 _gameStateTitle:
 	LDA GAME_STATE_PLAYING
 	STA gameState
 
-	JMP Forever
+	RTS
 
 
 _gameStateGameOver:
-	JMP RESET		;I don't know if this will work
+	RTS
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -304,11 +349,6 @@ _gameStateGameOver:
 
 
 ;FUNCTIONS
-
-Forever:
-	LDA nmiDone
-	BNE _gameLoop
-	JMP Forever
 
 VBlankWait:
 	BIT $2002		;BIT loads bit 7 into N, the bit apperently tells when the vBlank is done
@@ -351,48 +391,6 @@ _input2Loop:
 	ROL playerTwoInput
 	DEX
 	BNE _input2Loop
-
-
-;NAMETABLE UPDATE
-	LDA $2002             ;read PPU status to reset the high/low latch
-	LDA #$20
-	STA $2006             ;write the high byte of $2000 address (start of nametable 0 in PPU memory)
-	LDA #$00
-	STA $2006             ;write the low byte of $2000 address
-
-	LDA #$00
-	STA backgroundPtr_lo
-	LDA #HIGH (background)	;some NESASM3 exclusive features
-	STA backgroundPtr_hi
-	
-	LDX #$00
-	LDY #$00
-_loadBackgroundLoop:
-	LDA [backgroundPtr_lo], y
-	STA $2007
-
-	INY
-	BNE _loadBackgroundLoop	;let it loop, let it loop, when zero
-
-	INC backgroundPtr_hi	;increment memory (makes the pointer as a whole go up 256 bytes)
-	INX
-
-	CPX #$04	;make the 256 loop four times
-	BNE _loadBackgroundLoop
-
-;UPDATE ATTRIBUTE TABLE
-	LDA $2002             ;read PPU status to reset the high/low latch
-	LDA #$23
-	STA $2006             ;write the high byte of $23C0 address
-	LDA #$C0
-	STA $2006             ;write the low byte of $23C0 address
-	LDX #$00
-_loadAttributeLoop:
-	LDA attribute, x
-	STA $2007             ;write to PPU
-	INX
-	CPX #$20              ;8*4= $20 which is 32 in dec
-	BNE _loadAttributeLoop
 
 
 ;PPU CLEAN UP
