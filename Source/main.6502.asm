@@ -170,12 +170,12 @@ _loadStartupBackgroundLoop:
 	LDA #$C0
 	STA $2006             ;write the low byte of $23C0 address
 	LDX #$00
-_loadAttributeLoop:
+_loadStartupAttributeLoop:
 	LDA attribute, x
 	STA $2007             ;write to PPU
 	INX
 	CPX #$20              ;8*4= $20 which is 32 in dec
-	BNE _loadAttributeLoop
+	BNE _loadStartupAttributeLoop
 	
 	
 ;LOAD TEST META SPRITE
@@ -379,6 +379,20 @@ _loadBackgroundLoop:
 
 	CPX #$04	;make the 256 loop four times
 	BNE _loadBackgroundLoop
+
+;UPDATE ATTRIBUTE TABLE
+	LDA $2002             ;read PPU status to reset the high/low latch
+	LDA #$23
+	STA $2006             ;write the high byte of $23C0 address
+	LDA #$C0
+	STA $2006             ;write the low byte of $23C0 address
+	LDX #$00
+_loadAttributeLoop:
+	LDA attribute, x
+	STA $2007             ;write to PPU
+	INX
+	CPX #$20              ;8*4= $20 which is 32 in dec
+	BNE _loadAttributeLoop
 
 
 ;PPU CLEAN UP
