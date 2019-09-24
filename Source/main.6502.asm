@@ -29,12 +29,10 @@ WALL_BOTTOM = $12
 WALL_LEFT = $02
 WALL_RIGHT = $12
 
-SNAKE_SPEED_START = $01		;when 60, it moves 1 tile per frame
+SNAKE_FRAMES_TO_MOVE_START = 60		;when 60, it moves 1 tile per frame
 SNAKE_MAX_LENGHT_lo = $20
 SNAKE_MAX_LENGHT_hi = $00
 
-	.include "Constants/backgroundConstants.6502.asm"
-	.include "Constants/backgroundConstants.6502.asm"
 
 ;POINTERS
 	.rsset $0000			;zero page
@@ -44,6 +42,7 @@ backgroundPtr_hi	.rs 1
 
 snakeInputCounter_lo	.rs 1
 snakeInputCounter_hi	.rs 1
+
 
 ;VARIABLES
 	.rsset $0300			;prevous to this: sprite DMA
@@ -57,8 +56,8 @@ gameState			.rs 1		;use states defined as constants
 snakeTicksToMove 	.rs 1
 snakeTicks			.rs 1
 
-;3bits for one input, 1bit for who knows what
-snakeInputs 		.rs (SNAKE_MAX_LENGHT_lo + (SNAKE_MAX_LENGHT_hi *16)) ;(WALL_BOTTOM - WALL_TOP)*(WALL_RIGHT - WALL_LEFT)
+;snake grid, takes up a lot of RAM
+snakeInputGrid 		.rs (WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) ;(WALL_BOTTOM - WALL_TOP)*(WALL_RIGHT - WALL_LEFT)
 snakeInputsTemp		.rs 1
 
 ;increases after eating fruits
@@ -186,7 +185,6 @@ _loadFirstMetaSpriteLoop:
 	INX
 	CPX #$10
 	BNE _loadFirstMetaSpriteLoop
-	
 	;sprite data: $0200 - 0240 with 4 bytes interval
 	;sprite data layout: 
 	;1 - Y Position - vertical position of the sprite on screen. $00 is the top of the screen. Anything above $EF is off the bottom of the screen.
@@ -201,6 +199,10 @@ _loadFirstMetaSpriteLoop:
 	;  +-------- Flip sprite vertically
 	;4 - X Position - horizontal position on the screen. $00 is the left side, anything above $F9 is off screen
 	
+	;other setup
+	LDA SNAKE_FRAMES_TO_MOVE_START
+	STA snakeTicksToMove
+
 	;enable NMI, sprites from pattern table table 0
 	LDA #%10000000
 	STA $2000
@@ -212,6 +214,7 @@ _loadFirstMetaSpriteLoop:
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;GAME LOOP
+
 _gameLoop:
 	LDA #$00
 	STA nmiDone
@@ -239,110 +242,8 @@ Forever:
 	JMP Forever
 
 
-_gameStatePlaying:
-	LDX snakeTicks
-	INX
-	CPX snakeTicksToMove
-	BNE AfterTick
-
-
-	;Tick, if snake moves
-	;snakeInputs, loop backwards
-
-	;;;;;; #LOW (snakeInputs), #HIGH (snakeInputs)
-	LDA #LOW (snakeInputs)
-	STA snakeInputCounter_lo
-	LDA #HIGH (snakeInputs)
-	CLC
-	ADC snakeLength_hi	;current length of the snake, rest is irrelevant
-	STA snakeInputCounter_hi
-	LDY snakeLength_lo	;current length of the snake, rest is irrelevant
-
-	;do input stuff..., save value into temp before starting loop
-	LDA snakeInputs
-	STA snakeInputsTemp
-	;feed input
-	LDA playerOneInput
-	STA snakeInputs
-_snakeInputLoop:
-	;store this element's input, write the previous input
-	LDX snakeInputsTemp
-	LDA [snakeInputCounter_lo], y
-	STA snakeInputsTemp
-	TXA											;transfer X to A
-	STA [snakeInputCounter_lo], y
-
-	;continue with the loop, this is a 16-bit loop
-	DEY
-	CPY #$FF
-	BNE _snakeInputLoop			;if not zero
-
-	LDX snakeInputCounter_hi
-	DEX
-	CMP #HIGH (snakeInputs) - 1	;yes it works
-	BNE _snakeInputLoop
-	;past the boundary, the loop is done
-
-
-	;NAMETABLE UPDATE
-	LDA $2002             ;read PPU status to reset the high/low latch
-	LDA #$20
-	STA $2006             ;write the high byte of $2000 address (start of nametable 0 in PPU memory)
-	LDA #$00
-	STA $2006             ;write the low byte of $2000 address
-
-	LDA #$00
-	STA backgroundPtr_lo
-	LDA #HIGH (background)	;some NESASM3 exclusive features
-	STA backgroundPtr_hi
-	
-	LDX #$00
-	LDY #$00
-_loadBackgroundLoop:
-	LDA [backgroundPtr_lo], y
-	STA $2007
-
-	INY
-	BNE _loadBackgroundLoop	;let it loop, let it loop, when zero
-
-	INC backgroundPtr_hi	;increment memory (makes the pointer as a whole go up 256 bytes)
-	INX
-
-	CPX #$04	;make the 256 loop four times
-	BNE _loadBackgroundLoop
-
-;UPDATE ATTRIBUTE TABLE
-	LDA $2002             ;read PPU status to reset the high/low latch
-	LDA #$23
-	STA $2006             ;write the high byte of $23C0 address
-	LDA #$C0
-	STA $2006             ;write the low byte of $23C0 address
-	LDX #$00
-_loadAttributeLoop:
-	LDA attribute, x
-	STA $2007             ;write to PPU
-	INX
-	CPX #$20              ;8*4= $20 which is 32 in dec
-	BNE _loadAttributeLoop
-	;;;;;;
-
-
-AfterTick:
-	;do things such as updating sprites
-
-	RTS
-
-
-_gameStateTitle:
-	LDA GAME_STATE_PLAYING
-	STA gameState
-
-	RTS
-
-
-_gameStateGameOver:
-	RTS
-
+;IMPLEMENTATION OF GAME STATES
+	.include "game.6502.asm"
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -415,30 +316,12 @@ _input2Loop:
 	.org $E000
 paletteData:
 	.incbin "Palettes/persistant.pal"
-	;.db $22,$29,$1A,$0F,  $22,$36,$17,$0F,  $22,$30,$21,$0F,  $22,$27,$17,$0F   ;background palette
-	;.db $22,$1C,$15,$14,  $22,$02,$38,$3C,  $22,$1C,$15,$14,  $22,$02,$38,$3C   ;sprite palette
 
-;save nametables and attributes in different files
 background:
 	.incbin "Backgrounds/snake.nam"
-;	.db $24,$08,$09,$0A,$0B,$0C,$0D,$0E,$0F,$10,$24,$24,$24,$24,$24,$24  ;;row 1
-;	.db $66,$66,$56,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-;
-;	.db $88,$31,$98,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;row 2
-;	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24  ;;all sky
-;
-;	.db $78,$20,$80,$76,$66,$45,$24,$24,$45,$45,$45,$45,$45,$45,$24,$24  ;;row 3
-;	.db $24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$53,$54,$24,$24  ;;some brick tops
-;
-;	.db $24,$24,$24,$24,$47,$47,$24,$24,$47,$47,$47,$47,$47,$47,$24,$24  ;;row 4
-;	.db $69,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$24,$55,$56,$24,$24  ;;brick bottoms
 
 attribute:
 	.incbin "Backgrounds/snake.atr"
-;	.db %00000011, %00010000, %01010000, %00010000, %00000000, %00000000, %00000000, %00110000
-;
-;	.db $24,$24,$24,$24, $47,$47,$24,$24 ,$47,$47,$47,$47, $47,$47,$24,$24 ,$24,$24,$24,$24 ,$24,$24,$24,$24, $24,$24,$24,$24, $55,$56,$24,$24  ;;brick bottoms
-
 
 testSpriteData:
 	.db $80, $32, $00, $80   ;sprite 0
