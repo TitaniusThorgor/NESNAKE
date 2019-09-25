@@ -53,7 +53,7 @@ nmiDone				.rs 1
 gameState			.rs 1		;use states defined as constants
 
 ;ticks in this case: frames between that the snake moves
-snakeTicksToMove 	.rs 1
+snakeFramesToMove 	.rs 1
 snakeTicks			.rs 1
 
 ;snake grid, takes up a lot of RAM
@@ -75,10 +75,11 @@ RESET:			;CPU starts reading here
 	SEI			;disable IRQ interrupts, external interrupts
 	CLD			;disable decimal mode, something the NES 6502 chip does not have
 	LDX #$40
-	STX $4017	;disable APU IRQs or something
+	STX $4017	;disable APU IRQs
 	LDX #$FF
 	TXS			;set up stack
 	INX			;now x = 0
+	;(2000)
 	;76543210
 	;| ||||||
 	;| ||||++- Base nametable address
@@ -92,6 +93,19 @@ RESET:			;CPU starts reading here
 	;+-------- Generate an NMI at the start of the
 	;            vertical blanking interval vblank (0: off; 1: on)
 	STX	$2000	;disable NMI for now
+	;(2001)
+	;76543210
+	;||||||||
+	;|||||||+- Grayscale (0: normal color; 1: AND all palette entries
+	;|||||||   with 0x30, effectively producing a monochrome display;
+	;|||||||   note that colour emphasis STILL works when this is on!)
+	;||||||+-- Disable background clipping in leftmost 8 pixels of screen
+	;|||||+--- Disable sprite clipping in leftmost 8 pixels of screen
+	;||||+---- Enable background rendering
+	;|||+----- Enable sprite rendering
+	;||+------ Intensify reds (and darken other colors)
+	;|+------- Intensify greens (and darken other colors)
+	;+-------- Intensify blues (and darken other colors)
 	STX $2001	;disable rendering
 	STX $4010	;disable DMC IRQs
 	
@@ -108,16 +122,16 @@ _clearMem:
 	STA $0500, x
 	STA $0600, x
 	STA $0700, x
-	LDA #$FE		   ;move all sprites off screen
-	STA $0200, x
+
+	LDA $FE
+	STA $0200, x	;move all sprites off screen
 	INX
 	BNE _clearMem	;when x turns from $FF to $00 the zero flag is set
 	
 	JSR VBlankWait
-	
 
-;LOAD PALLETS
-	;PPU: pallet recognition to adress $3F00
+;LOAD PALETTS
+	;PPU: palett recognition to adress $3F00
 	LDA $2002	;read PPU status to reset the high/low latch to high
 	LDA #$3F	;load the high byte
 	STA $2006	;write the high byte
@@ -126,12 +140,12 @@ _clearMem:
 	;that code tells the PPU to set its address to $3F10, now the PPU data port at $2007 is ready to accept data
 	;loop with x and feed PPU, use this method if the whole palette is changed, otherwise use $3F10 and 32 bytes up
 	LDX #$00
-_loadPalletsLoop:
-	LDA paletteData, x
+_loadPalettsLoop:
+	LDA palette, x
 	STA $2007			;write the color one by one to the same adress
 	INX					;increment x
-	CPX #$20			;compare x with $20 = 32, which is the size of both pallets combined
-	BNE _loadPalletsLoop	;Branch if Not Equal
+	CPX #$20			;compare x with $20 = 32, which is the size of both paletts combined
+	BNE _loadPalettsLoop	;Branch if Not Equal
 	
 	
 ;LOAD BACKGROUND
@@ -141,7 +155,7 @@ _loadPalletsLoop:
 	LDA #$00
 	STA $2006             ;write the low byte of $2000 address
 
-	LDA #$00
+	LDA #LOW (background)
 	STA backgroundPtr_lo
 	LDA #HIGH (background)	;some NESASM3 exclusive features
 	STA backgroundPtr_hi
@@ -201,7 +215,13 @@ _loadFirstMetaSpriteLoop:
 	
 	;other setup
 	LDA SNAKE_FRAMES_TO_MOVE_START
-	STA snakeTicksToMove
+	STA snakeFramesToMove
+	
+	LDA #$04
+	STA snakeLength_lo
+	LDA #$00
+	STA snakeLength_hi
+	
 
 	;enable NMI, sprites from pattern table table 0
 	LDA #%10000000
@@ -314,20 +334,23 @@ _input2Loop:
 ;use camel-casing
 	.bank 1
 	.org $E000
-paletteData:
+palette:
 	.incbin "Palettes/persistant.pal"
-
+	;0 of the 4 colors in one pallete: beginning of the sprite table
+	.incbin "Palettes/persistant.pal"
+	
 background:
 	.incbin "Backgrounds/snake.nam"
 
-attribute:
-	.incbin "Backgrounds/snake.atr"
+	.rsset background + 960
+attribute	.rs 0
+
 
 testSpriteData:
-	.db $80, $32, $00, $80   ;sprite 0
-	.db $80, $33, $00, $88   ;sprite 1
-	.db $88, $34, $00, $80   ;sprite 2
-	.db $88, $35, $00, $88   ;sprite 3
+	.db $80, $00, $00, $80   ;sprite 0
+	.db $80, $00, $00, $88   ;sprite 1
+	.db $88, $00, $00, $80   ;sprite 2
+	.db $88, $00, $00, $88   ;sprite 3
 
 
 ;INTERRUPTS OR VECTORS
