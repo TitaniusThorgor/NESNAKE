@@ -13,7 +13,8 @@ _gameStatePlaying:
 	STA $2006             ;write the high byte of $2000 address (start of nametable 0 in PPU memory)
 	LDA #$00
 	STA $2006             ;write the low byte of $2000 address
-
+;use backgroundPtr for snake input loop
+_SNAKE_BUFFER_LENGTH = (WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4
 
 ;;;;;;
 

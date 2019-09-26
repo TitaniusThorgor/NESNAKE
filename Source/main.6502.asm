@@ -24,14 +24,18 @@ GAME_STATE_TITLE = $01		;gamestates
 GAME_STATE_PLAYING = $02
 GAME_STATE_GAMEOVER = $03
 
-WALL_TOP = $02				;in tiles
-WALL_BOTTOM = $12
-WALL_LEFT = $02
-WALL_RIGHT = $12
+;0-31
+;0-29
+WALL_TOP = 4				;in tiles
+WALL_BOTTOM = 25
+WALL_LEFT = 4
+WALL_RIGHT = 27
 
 SNAKE_FRAMES_TO_MOVE_START = 60		;when 60, it moves 1 tile per frame
 SNAKE_MAX_LENGHT_lo = $20
 SNAKE_MAX_LENGHT_hi = $00
+
+SNAKE_STARTING_POS_X = $
 
 
 ;POINTERS
@@ -39,6 +43,9 @@ SNAKE_MAX_LENGHT_hi = $00
 
 backgroundPtr_lo	.rs 1
 backgroundPtr_hi	.rs 1
+
+backgroundPtr1_lo	.rs 1
+backgroundPtr1_hi	.rs 1
 
 snakeInputCounter_lo	.rs 1
 snakeInputCounter_hi	.rs 1
@@ -57,7 +64,7 @@ snakeFramesToMove 	.rs 1
 snakeTicks			.rs 1
 
 ;snake grid, takes up a lot of RAM
-snakeInputGrid 		.rs (WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) ;(WALL_BOTTOM - WALL_TOP)*(WALL_RIGHT - WALL_LEFT)
+snakeInputs 		.rs (WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4 ;(WALL_BOTTOM - WALL_TOP)*(WALL_RIGHT - WALL_LEFT)
 snakeInputsTemp		.rs 1
 
 ;increases after eating fruits
