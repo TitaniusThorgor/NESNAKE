@@ -165,4 +165,7 @@ _gameStateTitle:
 
 ;GAME STATE GAME OVER
 _gameStateGameOver:
+	LDA GAME_STATE_PLAYING
+	STA gameState
+
 	RTS

@@ -189,7 +189,8 @@ _gameLoop:
 
 Forever:
 	LDA nmiDone
-	BNE _gameLoop
+	CMP #$01
+	BEQ _gameLoop
 	JMP Forever
 
 

@@ -1,5 +1,7 @@
 ;GAME STARTUP
 
+    LDA GAME_STATE_PLAYING
+    STA gameState
 ;snake psosition
     LDA SNAKE_STARTING_POS_X
     STA snakePos_X
