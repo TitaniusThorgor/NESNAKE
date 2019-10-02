@@ -150,6 +150,10 @@ _loadFirstMetaSpriteLoop:
 	
 	.include "gameStartup.6502.asm"
 
+	;set namBuffer
+	LDA #$00
+	STA namBuffer
+
 	;enable NMI, sprites from pattern table table 0
 	LDA #%10000000
 	STA $2000
@@ -203,6 +207,24 @@ VBlankWait:
 	BPL VBlankWait	;BPL, Branch on PLus, checks the N register if it's 0
 	RTS				;ReTurn from Subroutine
 
+;adds one change of tile in nametable
+;USAGE: load backgroundDir_hi with the high byte of the adress, backgroundDir_lo with the low byte and A with the tile index
+NamAdd:
+	LDX namBuffer
+	INX
+	STA namBuffer, X
+	INX
+	LDA backgroundDir_lo
+	STA namBuffer, X
+	INX
+	LDA backgroundDir_hi
+	CLC
+	ADC #$20
+	STA namBuffer, X
+	STX namBuffer
+
+	RTS
+
 
 
 ;NMI
@@ -210,11 +232,56 @@ VBlankWait:
 NMI:
 	;sprite setup, it seems this has to be done every NMI interrupt, 64 in the pattern table
 	;sprite DMA setup (direct memory access), typically $0200-02FF (internal RAM) is used for this, which it is in this case
-;SPRITE NMI
+;SPRITE DMA
 	LDA #$00	;low byte of $0200
 	STA $2003
 	LDA #$02
 	STA $4014	;sets the high byte
+
+
+;UDPATE BACKGROUND
+;make updates to the background, ca 2250 cycles, ca 160 bytes can be copied from RAM
+;apply changes in RAM, then apply them here
+;in this case we can only copy 127 bytes, not "the full 160"
+;namBuffer
+	LDX namBuffer
+	BEQ _afterNamUpdate
+
+	LDA $2002             ;read PPU status to reset the high/low latch
+	DEX		;now at the proper index
+_namUpdateLoop:
+	;high-byte
+	LDA namBuffer, X
+	CLC
+	ADC #$20
+	STA $2006
+	DEX
+	;low-byte
+	LDA namBuffer, X
+	STA $2006
+	DEX
+	;tile index
+	LDA namBuffer, X
+	STA 2007
+
+	DEX		;element 0 is a flag and has already been read, this is just perfect flag/layout management, got rid of that CMP opcode
+	BNE _namUpdateLoop
+
+
+	LDA #$00	;just the flag, clear it
+	STA namBuffer
+_afterNamUpdate:
+
+
+;PPU CLEAN UP
+	LDA #%10010000	;enable NMI, sprites from pattern table 0, background from pattern table 1
+	STA $2000
+	LDA #%00011110
+	STA $2001		;enable sprites and background, no clipping on left side
+	LDA #$00
+	STA $2005		;tells PPU there is no background scrolling
+	STA $2005
+
 
 
 ;INPUT
@@ -241,16 +308,7 @@ _input2Loop:
 	BNE _input2Loop
 
 
-;PPU CLEAN UP
-	LDA #%10010000	;enable NMI, sprites from pattern table 0, background from pattern table 1
-	STA $2000
-	LDA #%00011110
-	STA $2001		;enable sprites and background, no clipping on left side
-	LDA #$00
-	STA $2005		;tells PPU there is no background scrolling
-	STA $2005
-
-
+;end of NMI
 	LDA #$01
 	STA nmiDone
 	RTI	;ReTurn from Interrupt

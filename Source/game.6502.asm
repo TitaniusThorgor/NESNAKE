@@ -29,103 +29,130 @@ _snakePersistantInputLeftDone:
 	CMP #$00000001
 	BNE _snakePersistantInputRightDone
 	LDX #$03
+	STX snakeLastInput
 _snakePersistantInputRightDone:
 ;;;;;;;;;;
 
 	LDX snakeTicks
 	INX
+	STX snakeTicks
 	CPX snakeFramesToMove
-	BNE _afterTick
+	BNE _tickDone
+	JSR _tick
+_tickDone:
+;do things that need to be done every frame, such as updating sprites
+
+;return from gamestate playing
+	RTS
 
 
-;Tick
-;loop through snake
-
-;some general stuff:
-	;begin with head: read input, update position x and y, store value into X?
-
-;NESASM3 user defined function
-;in this case, it performs one tile of the snake
-;SCR_ADDR .func (\1) + ((\2) << 5)
-
-
-;head
-	LDA snakeLastInput
-	;ROR
-	BNE _snakeHeadAfterUp	;when snakeLastInput is up
-	;update X
-	LDX snakePos_Y
-	DEX
-	STX snakePos_Y
-_snakeHeadAfterUp:
-
-	CMP #$01
-	BNE _snakeHeadAfterDown
-	LDX snakePos_Y
-	INX
-	STX snakePos_Y
-_snakeHeadAfterDown:
-
-	LDX snakePos_X
-
-	CMP #$02
-	BNE _snakeHeadAfterLeft
-	DEX
-	STX snakePos_X
-_snakeHeadAfterLeft:
-
-	CMP #$03
-	BNE _snakeHeadAfterRight
-	INX
-	STX snakePos_X
-_snakeHeadAfterRight:
-
-
-	;snakeLastInput in A
-	LDA snakeInputs
-	STA snakeInputsTemp
-	ASL A
-	ASL A
-	EOR snakeLastInput
-	STA snakeInputs
-
-;update visuals
-;write to nametable in PPU memory; write PPU memory adress to $2006
-	LDA $2002             ;read PPU status to reset the high/low latch
-	LDA #$20
-	STA $2006             ;write the high byte of $2000 address (start of nametable 0 in PPU memory)
+;keep this structure, as I could to add a state where the snake is not moving
+;reads snakePos and updates namBuffer
+;usage: load A with x of the position and X with y of the position, load Y with tile index
+UpdateNamPos:
+	;A has loaded snakePos_X
+	;X has loaded snakePos_Y
+	STA backgroundDir_lo
 	LDA #$00
-	STA $2006             ;write the low byte of $2000 address
-;set relevant memory to:  + snakePos_Y * (WALL_RIGHT - WALL_LEFT) + snakePos_X
-
-;HERE; HERE; HERE, JUST LOAD THE FUCKING SNAKE POSITION: snakePos_X and snakePos_Y
-	
-
-
-;SNAKE_BUFFER_LENGTH
-	LDA #LOW (snakeInputs)
-	STA backgroundPtr_lo
-	LDA #HIGH (snakeInputs)
-	STA backgroundPtr_hi
-	LDY #$00
-_snakeLoop:
-	;do the thing 4 times than iterate
-	LDA [backgroundPtr_lo], y	;takes many machine cycles, transfer to x instead of reading 4 times
-	TAX  ;76543210
-	AND #%00000011
-
-
-	INY
-	CPY SNAKE_BUFFER_LENGTH
-	BNE _snakeLoop
-
-;;;;
-
-
-_afterTick:
-;do things such as updating sprites, 0 and 1, 4-byte offset
+	STA backgroundDir_hi
+	LDA backgroundDir_lo
+	INX
+_snakeUpdateHeadHighLoop:
+	DEX
+	BEQ _snakeUpdateHeadHighLoopDone
+	CLC
+	ADC #$20
+	STA backgroundDir_lo
+	LDA backgroundDir_hi
+	ADC #$00
+	STA backgroundDir_hi
+	LDA backgroundDir_lo
+	JMP _snakeUpdateHeadHighLoop
+_snakeUpdateHeadHighLoopDone:
+	;add to namBuffer, A (which contains the tileIndex in the function) will be loaded with the starting point in CHR, than added with the direction directly
+	TYA
+	;backgroundDir lo and hi are loaded with the correct adresses, minus $2000, A contains tile index
+	JSR NamAdd
 
 	RTS
+;;;;;;;;;
+
+;Tick
+_tick:
+	LDA #$00
+	STA snakeTicks
+
+	;display a body tile in the previous tick's head's position
+	LDA snakeInputs
+	AND #%00000011
+	CLC
+	ADC SNAKE_CHR_BODY_ROW
+	TAY
+	LDA snakePos_X
+	STA snakePos_Y
+	JSR UpdateNamPos
+
+	;update the position
+	LDA snakeLastInput
+	CMP #$00
+	BNE _snakePosUpDone
+
+	;up: update pos as well as bouns checking with walls, when updated; the loop that goes through the rest of the snake can check for snake interception
+	;same goes for all directions
+	LDY snakePos_Y
+	DEY
+	STY snakePos_Y
+	CPY WALL_TOP
+	BEQ _bumped
+	JMP _snakePosDone
+_snakePosUpDone:
+	CMP #$01
+	BNE _snakePosDownDone
+
+	;down
+	LDY snakePos_Y
+	INY
+	STY snakePos_Y
+	CPY WALL_BOTTOM
+	BEQ _bumped
+	JMP _snakePosDone
+_snakePosDownDone:
+	CMP #$02
+	BNE _snakePosLeftDone
+
+	;left
+	LDY snakePos_X
+	DEY
+	STY snakePos_X
+	CPY WALL_LEFT
+	BEQ _bumped
+	JMP _snakePosDone
+_snakePosLeftDone:
+	
+	;can only be right
+	LDY snakePos_X
+	INY
+	STY snakePos_X
+	CPY WALL_RIGHT
+	BNE _snakePosDone
+_bumped:
+	LDA GAME_STATE_GAMEOVER
+	STA gameState
+_snakePosDone:
+	;update namBuffer through UpdateNamPos
+	LDA SNAKE_CHR_HEAD_ROW
+	CLC
+	ADC snakeLastInput
+	TAY
+	LDA snakePos_X
+	LDX snakePos_Y
+	JSR UpdateNamPos
+	;now to the 3 remaining elements to be updated
+	
+
+;return from tick
+	RTS
+;;;;
 
 
 ;GAME STATE TITLE

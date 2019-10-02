@@ -1,15 +1,15 @@
 ;GAME STARTUP
 
-;snake "speed"
-	LDA SNAKE_FRAMES_TO_MOVE_START
-	STA snakeFramesToMove
-
 ;snake psosition
     LDA SNAKE_STARTING_POS_X
     STA snakePos_X
 
     LDA SNAKE_STARTING_POS_Y
     STA snakePos_Y
+
+;amount of frames to move
+    LDA #$20
+    STA snakeFramesToMove
 
 ;snake last input
     LDA #$03    ;right, facing right in the beginning
