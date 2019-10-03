@@ -134,7 +134,7 @@ _loadFirstMetaSpriteLoop:
 	INX
 	CPX #$10
 	BNE _loadFirstMetaSpriteLoop
-	;sprite data: $0200 - 0240 with 4 bytes interval
+	;sprite data: $0200 - $0240 with 4 bytes interval
 	;sprite data layout: 
 	;1 - Y Position - vertical position of the sprite on screen. $00 is the top of the screen. Anything above $EF is off the bottom of the screen.
 	;2 - Tile Number - this is the tile number (0 to 256) for the graphic to be taken from a Pattern Table.
@@ -175,15 +175,15 @@ _gameLoop:
 	;states
 	LDA gameState
 
-	CMP GAME_STATE_PLAYING
+	CMP #GAME_STATE_PLAYING
 	BNE Forever
 	JSR _gameStatePlaying
 
-	CMP GAME_STATE_TITLE
+	CMP #GAME_STATE_TITLE
 	BNE Forever
 	JSR _gameStateTitle
 
-	CMP GAME_STATE_GAMEOVER
+	CMP #GAME_STATE_GAMEOVER
 	BNE Forever
 	JSR _gameStateGameOver
 
@@ -249,12 +249,9 @@ NMI:
 	BEQ _afterNamUpdate
 
 	LDA $2002             ;read PPU status to reset the high/low latch
-	DEX		;now at the proper index
 _namUpdateLoop:
 	;high-byte
 	LDA namBuffer, X
-	CLC
-	ADC #$20
 	STA $2006
 	DEX
 	;low-byte
@@ -263,14 +260,13 @@ _namUpdateLoop:
 	DEX
 	;tile index
 	LDA namBuffer, X
-	STA 2007
+	STA $2007
 
 	DEX		;element 0 is a flag and has already been read, this is just perfect flag/layout management, got rid of that CMP opcode
 	BNE _namUpdateLoop
 
 
-	LDA #$00	;just the flag, clear it
-	STA namBuffer
+	STX namBuffer
 _afterNamUpdate:
 
 
@@ -307,6 +303,17 @@ _input2Loop:
 	ROL playerTwoInput
 	DEX
 	BNE _input2Loop
+
+
+;TEST sprites
+	LDX $0200
+	LDY playerOneInput
+	CPY #$00000010
+	BNE _spriteLeftDone
+	DEX
+	STX $0200
+_spriteLeftDone:
+
 
 
 ;end of NMI

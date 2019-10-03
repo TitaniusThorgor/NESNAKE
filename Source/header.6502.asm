@@ -19,9 +19,9 @@
 
 ;CONSTANTS
 
-GAME_STATE_TITLE = $01		;gamestates
-GAME_STATE_PLAYING = $02
-GAME_STATE_GAMEOVER = $03
+GAME_STATE_TITLE = $00		;gamestates
+GAME_STATE_PLAYING = $01
+GAME_STATE_GAMEOVER = $02
 
 WALL_TOP = $04				;in tiles
 WALL_BOTTOM = $2A			;26
@@ -40,9 +40,6 @@ WALL_RIGHT = $2A
 
 SNAKE_FRAMES_TO_MOVE_START = 60		;when 60, it moves 1 tile per frame
 
-SNAKE_STARTING_POS_X = $10
-SNAKE_STARTING_POS_Y = $10
-
 ;the snake CHR row, index from this with the order: up, down, left, right beginning with head than tail then body
 SNAKE_CHR_HEAD_ROW = $40
 SNAKE_CHR_TAIL_END_ROW = $44
@@ -55,9 +52,6 @@ SNAKE_CHR_BODY_ROW = $48
 backgroundPtr_lo	.rs 1
 backgroundPtr_hi	.rs 1
 
-;position, if tiles more than 16x16; two bytes
-snakePos_X          .rs 1
-snakePos_Y          .rs 1
 
 
 ;BACKGROUND BUFFER: OneTileNamBuffer
@@ -91,10 +85,14 @@ snakeFramesToMove 	.rs 1
 snakeTicks			.rs 1
 snakeBumped			.rs 1
 
+;position, if tiles more than 16x16; two bytes
+snakePos_X          .rs 1
+snakePos_Y          .rs 1
+snakeLastInput      .rs 1
+
 ;snake inputs/buffer, takes up a lot of RAM
 snakeInputs 		.rs (WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4 ;(WALL_BOTTOM - WALL_TOP)*(WALL_RIGHT - WALL_LEFT)
 snakeInputsTemp		.rs 1
-snakeLastInput      .rs 1
 
 ;increases after eating fruits
 snakeLength_lo		.rs 1

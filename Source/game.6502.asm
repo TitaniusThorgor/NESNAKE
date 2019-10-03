@@ -3,6 +3,18 @@
 
 ;GAME STATE PLAYING
 _gameStatePlaying:
+
+;TESTING
+	;LDY snakeInputsTemp
+	LDY snakeInputsTemp
+	INY
+	STY snakeInputsTemp
+	LDA #$00
+	LDX #$02
+	JSR UpdateNamPos
+
+
+
 	;snakeLastInput
 	;convert input to two bytes
 	LDA playerOneInput
@@ -20,13 +32,13 @@ _snakePersistantInputUpDone:
 	STX snakeLastInput
 _snakePersistantInputDownDone:
 
-	CMP #$00000010
+	CMP #%00000010
 	BNE _snakePersistantInputLeftDone
 	LDX #$02
 	STX snakeLastInput
 _snakePersistantInputLeftDone:
 
-	CMP #$00000001
+	CMP #%00000001
 	BNE _snakePersistantInputRightDone
 	LDX #$03
 	STX snakeLastInput
@@ -55,18 +67,17 @@ UpdateNamPos:
 	STA backgroundDir_lo
 	LDA #$00
 	STA backgroundDir_hi
-	LDA backgroundDir_lo
 	INX
 _snakeUpdateHeadHighLoop:
 	DEX
 	BEQ _snakeUpdateHeadHighLoopDone
+	LDA backgroundDir_lo
 	CLC
 	ADC #$20
 	STA backgroundDir_lo
 	LDA backgroundDir_hi
 	ADC #$00
 	STA backgroundDir_hi
-	LDA backgroundDir_lo
 	JMP _snakeUpdateHeadHighLoop
 _snakeUpdateHeadHighLoopDone:
 	;add to namBuffer, A (which contains the tileIndex in the function) will be loaded with the starting point in CHR, than added with the direction directly
@@ -86,23 +97,24 @@ _tick:
 	LDA snakeInputs
 	AND #%00000011
 	CLC
-	ADC SNAKE_CHR_BODY_ROW
+	ADC #SNAKE_CHR_BODY_ROW
 	TAY
 	LDA snakePos_X
-	STA snakePos_Y
+	LDX snakePos_Y
 	JSR UpdateNamPos
 
-	;update the position
+;update the position
+;when updated, the loop that goes through the rest of the snake can check for snake interception
+;update pos as well as bouns checking with walls
 	LDA snakeLastInput
 	CMP #$00
 	BNE _snakePosUpDone
 
-	;up: update pos as well as bouns checking with walls, when updated; the loop that goes through the rest of the snake can check for snake interception
-	;same goes for all directions
+	;up 
 	LDY snakePos_Y
 	DEY
 	STY snakePos_Y
-	CPY WALL_TOP
+	CPY #WALL_TOP
 	BEQ _bumped
 	JMP _snakePosDone
 _snakePosUpDone:
@@ -113,7 +125,7 @@ _snakePosUpDone:
 	LDY snakePos_Y
 	INY
 	STY snakePos_Y
-	CPY WALL_BOTTOM
+	CPY #WALL_BOTTOM
 	BEQ _bumped
 	JMP _snakePosDone
 _snakePosDownDone:
@@ -124,7 +136,7 @@ _snakePosDownDone:
 	LDY snakePos_X
 	DEY
 	STY snakePos_X
-	CPY WALL_LEFT
+	CPY #WALL_LEFT
 	BEQ _bumped
 	JMP _snakePosDone
 _snakePosLeftDone:
@@ -133,14 +145,16 @@ _snakePosLeftDone:
 	LDY snakePos_X
 	INY
 	STY snakePos_X
-	CPY WALL_RIGHT
+	CPY #WALL_RIGHT
 	BNE _snakePosDone
 _bumped:
-	LDA GAME_STATE_GAMEOVER
-	STA gameState
+	LDA #$01
+	STA snakeBumped
+	;LDA GAME_STATE_GAMEOVER
+	;STA gameState
 _snakePosDone:
 	;update namBuffer through UpdateNamPos
-	LDA SNAKE_CHR_HEAD_ROW
+	LDA #SNAKE_CHR_HEAD_ROW
 	CLC
 	ADC snakeLastInput
 	TAY
@@ -148,6 +162,7 @@ _snakePosDone:
 	LDX snakePos_Y
 	JSR UpdateNamPos
 	;now to the 3 remaining elements to be updated
+	
 	
 
 ;return from tick
@@ -157,7 +172,7 @@ _snakePosDone:
 
 ;GAME STATE TITLE
 _gameStateTitle:
-	LDA GAME_STATE_PLAYING
+	LDA #GAME_STATE_PLAYING
 	STA gameState
 
 	RTS
@@ -165,7 +180,7 @@ _gameStateTitle:
 
 ;GAME STATE GAME OVER
 _gameStateGameOver:
-	LDA GAME_STATE_PLAYING
+	LDA #GAME_STATE_PLAYING
 	STA gameState
 
 	RTS

@@ -1,12 +1,14 @@
 ;GAME STARTUP
 
-    LDA GAME_STATE_PLAYING
+;start game state
+    LDA #GAME_STATE_PLAYING
     STA gameState
+
 ;snake psosition
-    LDA SNAKE_STARTING_POS_X
+    LDA #$10
     STA snakePos_X
 
-    LDA SNAKE_STARTING_POS_Y
+    LDA #$10
     STA snakePos_Y
 
 ;amount of frames to move
