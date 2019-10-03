@@ -27,4 +27,4 @@
 
 ;snake inputs/buffer
     LDA #$FF            ;right in all elements (snake tiles, two bits per tile)
-    STA snakeInputs     ;we start with the length of four
+    STA snakeInputs     ;we start with the length of 4

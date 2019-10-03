@@ -68,7 +68,8 @@ namBuffer			.rs $9F
 
 
 ;VARIABLES
-	.rsset $0300			;prevous to this: sprite DMA
+;don't forget to add setup when needed
+generalVar			.rsset $0300			;prevous to this: sprite DMA
 
 ;background directives
 backgroundDir_lo	.rs 1
@@ -88,12 +89,16 @@ snakeBumped			.rs 1
 ;position, if tiles more than 16x16; two bytes
 snakePos_X          .rs 1
 snakePos_Y          .rs 1
+snakeTempPos_X		.rs 1
+snakeTempPos_Y		.rs 1
 snakeLastInput      .rs 1
 
-;snake inputs/buffer, takes up a lot of RAM
-snakeInputs 		.rs (WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4 ;(WALL_BOTTOM - WALL_TOP)*(WALL_RIGHT - WALL_LEFT)
+;snake inputs/buffer, takes up a lot of RAM, can still use an 8-bit indexer
+snakeInputs 		.rs (WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4
 snakeInputsTemp		.rs 1
+snakeInputsTempMeta	.rs 1
 
-;increases after eating fruits
+;snake length, update this when snake eats a fruit
+;use this to loop the correct amount of snake inputs every tick
 snakeLength_lo		.rs 1
 snakeLength_hi		.rs 1
