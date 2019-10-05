@@ -96,9 +96,10 @@ snakeLastInput      .rs 1
 ;snake inputs/buffer, takes up a lot of RAM, can still use an 8-bit indexer
 snakeInputs 		.rs (WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4
 snakeInputsTemp		.rs 1
-snakeInputsTempMeta	.rs 1
+snakeInputsLastElements		.rs 1
+snakeInputsAllBytes			.rs 1
 
 ;snake length, update this when snake eats a fruit
 ;use this to loop the correct amount of snake inputs every tick
-snakeLength_lo		.rs 1
-snakeLength_hi		.rs 1
+snakeLength_lo			.rs 1
+snakeLength_hi			.rs 1

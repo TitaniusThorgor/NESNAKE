@@ -161,18 +161,105 @@ _snakePosDone:
 	;translate the 16-bit length to an 8-bit indexer, this indexer covers up to 3 unnessesary elements, don't read these
 
 ;when outer is at the last index, use another inner loop
-;first create the outer loop's index, then use the % of the 16-bit value to get the last inner loop counter (this can be done later)
+;first create the outer loop's index which should leave out remaining elements, create another counter which tells how many elements there are in the only parially filled byte
+;snakeLength_lo, snakeLength_hi, snakeLengthCounter_lo, snakeLengthCounter_hi, use snakeTempPos_X and Y with this loop's own pos updater
 
+;loop time
+	LDA snakeLastInput
+	ASL A
+	ASL A
+	ASL A
+	ASL A
+	ASL A
+	ASL A
+	STA snakeInputsTemp
+
+	LDA snakeLength_lo
+	STA snakeLengthCounter_lo
+	LDA snakeLength_hi
+	STA snakeLengthCounter_hi
+;create "meta loop" counter
+	LDA snakeLength_hi
+	LSR A
+	TAX
+	LDA snakeLength_lo
+	ROR A
+	TAY
+	TXA
+	LSR A
+	TYA
+	ROR A
+	STA snakeInputsAllBytes		;the "meta loop" counter
+	;the "last inner loop" counter is the two last bits in snakeLength_lo
+
+
+	LDX #$00
 _snakeInputsLoop:
+	CPY #$00
+	BEQ _snakeInputsLoopInnerDone
+	
+	;do stuff only with A
 	LDA snakeInputs, X
-	LDY #$03
-_snakeInputsInnerLoop:
 	AND #%00000011
-	DEY
-	BNE _snakeInputsInnerLoop
-	INX
-	;CPX with some number
+	BNE _snakeInputsLoopUpDone
+	DEC snakeTempPos_Y
+	JMP _snakeInputsLoopRightDone
+_snakeInputsLoopUpDone:
+	CMP #$01
+	BNE _snakeInputsLoopDownDone
+	INC snakeTempPos_Y
+	JMP _snakeInputsLoopRightDone
+_snakeInputsLoopDownDone:
+	CMP #$02
+	BNE _snakeInputsLoopLeftDone
+	DEC snakeTempPos_X
+	JMP _snakeInputsLoopRightDone
+_snakeInputsLoopLeftDone:
+	INC snakeTempPos_X
+_snakeInputsLoopRightDone:
 
+	LDA snakeTempPos_X
+	CMP snakePos_X
+	BEQ snakeBumped
+	LDA snakeTempPos_Y
+	CMP snakePos_Y
+	BEQ snakeBumped
+	
+	LDA snakeInputsTemp		;this is faster
+	ASL	A
+	LDA snakeInputsTemp
+	ROL snakeInputs, X
+	ROL A
+	ROL snakeInputs, X
+	ROL A
+	ASL A
+	ASL A
+	ASL A
+	ASL A
+	ASL A
+	ASL A
+	STA snakeInputsTemp
+
+	;done, next "inner" iteration
+	DEY
+	JMP _snakeInputsLoop
+_snakeInputsLoopInnerDone:
+	;done, next "outer" iteration
+	CPX snakeInputsAllBytes
+	BEQ snakeInputsLoopDone		;here, have completed the last inner interation
+	INX
+	CPX snakeInputsAllBytes
+	;now at the last iteration which could have 0 to 3 elements
+	;last 2 bits of snakeLength_lo holds the number of elements
+	LDA snakeLength_lo
+	AND #%00000011
+	TAY
+	
+
+_snakeInputsLoopDone:
+
+
+_snakeBumped:
 
 ;return from tick
 	RTS
