@@ -42,7 +42,7 @@ SNAKE_FRAMES_TO_MOVE_START = 60		;when 60, it moves 1 tile per frame
 
 ;the snake CHR row, index from this with the order: up, down, left, right beginning with head than tail then body
 SNAKE_CHR_HEAD_ROW = $40
-SNAKE_CHR_TAIL_END_ROW = $44
+SNAKE_CHR_TAIL_ROW = $44
 SNAKE_CHR_BODY_ROW = $48
 
 
@@ -94,10 +94,11 @@ snakeTempPos_Y		.rs 1
 snakeLastInput      .rs 1
 
 ;snake inputs/buffer, takes up a lot of RAM, can still use an 8-bit indexer
-snakeInputs 		.rs (WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4
+snakeInputs 		.rs $40;(WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4
 snakeInputsTemp		.rs 1
 snakeInputsLastElements		.rs 1
 snakeInputsAllBytes			.rs 1
+snakeInputsDummy			.rs 1
 
 ;snake length, update this when snake eats a fruit
 ;use this to loop the correct amount of snake inputs every tick

@@ -172,12 +172,8 @@ _snakePosDone:
 	ASL A
 	ASL A
 	ASL A
-	STA snakeInputsTemp
+	STA snakeInputsTemp		;
 
-	LDA snakeLength_lo
-	STA snakeLengthCounter_lo
-	LDA snakeLength_hi
-	STA snakeLengthCounter_hi
 ;create "meta loop" counter
 	LDA snakeLength_hi
 	LSR A
@@ -192,14 +188,16 @@ _snakePosDone:
 	STA snakeInputsAllBytes		;the "meta loop" counter
 	;the "last inner loop" counter is the two last bits in snakeLength_lo
 
-
+	LDA snakeInputs
+	STA snakeInputsDummy
 	LDX #$00
+	LDY #$04
 _snakeInputsLoop:
 	CPY #$00
 	BEQ _snakeInputsLoopInnerDone
 	
 	;do stuff only with A
-	LDA snakeInputs, X
+	LDA snakeInputsDummy
 	AND #%00000011
 	BNE _snakeInputsLoopUpDone
 	DEC snakeTempPos_Y
@@ -220,11 +218,19 @@ _snakeInputsLoopRightDone:
 
 	LDA snakeTempPos_X
 	CMP snakePos_X
-	BEQ snakeBumped
+	BEQ _snakeBumped
 	LDA snakeTempPos_Y
 	CMP snakePos_Y
-	BEQ snakeBumped
-	
+	BEQ _snakeBumped
+
+	;done, next "inner" iteration
+	DEY
+	LSR snakeInputsDummy
+	LSR snakeInputsDummy
+	JMP _snakeInputsLoop
+_snakeInputsLoopInnerDone:
+
+	;now shift current byte
 	LDA snakeInputsTemp		;this is faster
 	ASL	A
 	LDA snakeInputsTemp
@@ -240,26 +246,43 @@ _snakeInputsLoopRightDone:
 	ASL A
 	STA snakeInputsTemp
 
-	;done, next "inner" iteration
-	DEY
-	JMP _snakeInputsLoop
-_snakeInputsLoopInnerDone:
 	;done, next "outer" iteration
 	CPX snakeInputsAllBytes
-	BEQ snakeInputsLoopDone		;here, have completed the last inner interation
+	BEQ _snakeInputsLoopDone		;here, have completed the last inner interation
 	INX
+	LDA snakeInputs, X
+	STA snakeInputsDummy
+	LDY #$04
 	CPX snakeInputsAllBytes
+	BNE _snakeInputsLoop
 	;now at the last iteration which could have 0 to 3 elements
 	;last 2 bits of snakeLength_lo holds the number of elements
 	LDA snakeLength_lo
 	AND #%00000011
 	TAY
-	
-
-_snakeInputsLoopDone:
+	JMP _snakeInputsLoop
 
 
 _snakeBumped:
+
+_snakeInputsLoopDone:
+;in temp is the #%11000000 outshifted direction
+;update snakeTempPos as tail
+;update updated snakeTempPos as empty tile
+	LDA snakeInputsTemp
+	LSR A
+	LSR A
+	LSR A
+	LSR A
+	LSR A
+	LSR A
+	CLC
+	ADC #SNAKE_CHR_TAIL_ROW
+	TAY
+	LDA snakeTempPos_X
+	LDX snakeTempPos_Y
+	JSR UpdateNamPos
+
 
 ;return from tick
 	RTS
