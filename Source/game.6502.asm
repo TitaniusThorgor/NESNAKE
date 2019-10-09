@@ -165,13 +165,9 @@ _snakePosDone:
 ;snakeLength_lo, snakeLength_hi, snakeLengthCounter_lo, snakeLengthCounter_hi, use snakeTempPos_X and Y with this loop's own pos updater
 
 ;loop time
+	;snakeLastInput must not have any ones apart from bit 0 and 1
 	LDA snakeLastInput
-	ASL A
-	ASL A
-	ASL A
-	ASL A
-	ASL A
-	ASL A
+	AND #$03
 	STA snakeInputsTemp		;
 
 ;create "meta loop" counter
@@ -190,92 +186,92 @@ _snakePosDone:
 
 	LDA snakeInputs
 	STA snakeInputsDummy
-	LDX #$00
+
+	LDX #$FF
+_snakeInputsOuterLoop:
+	CPX snakeInputsAllBytes		;no worries
+	BEQ _snakeInputsLoopDone
+	INX
+	CPX snakeInputsAllBytes
+	BNE _snakeInputsNotQuitting
+	;set y to "last inner loop"
+	LDA snakeLength_lo
+	AND #%00000011
+	TAY
+	INY		;because of the y offset which is beneficial for the loop
+	JMP _snakeInputsBoundsCheckDone
+_snakeInputsNotQuitting:
 	LDY #$04
+_snakeInputsBoundsCheckDone:
+
+	;now shift current byte
+	LDA snakeInputs, X		;this is faster
+	ASL	A
+	ROL snakeInputsTempTemp
+	ASL A
+	ROL snakeInputsTempTemp
+	ORA snakeInputsTemp		;bit 0 and 1
+	STA snakeInputs, X
+	LDA snakeInputsTempTemp
+	STA snakeInputsTemp
+
+	;load the relevant byte to check and update on
+	LDA snakeInputs, X
+	STA snakeInputsDummy
+
+
+;INNER LOOP
 _snakeInputsLoop:
-	CPY #$00
-	BEQ _snakeInputsLoopInnerDone
+	DEY			;when it hits zero
+	BEQ _snakeInputsOuterLoop
 	
 	;do stuff only with A
 	LDA snakeInputsDummy
 	AND #%00000011
 	BNE _snakeInputsLoopUpDone
-	DEC snakeTempPos_Y
+	;up
+	INC snakeTempPos_Y
 	JMP _snakeInputsLoopRightDone
 _snakeInputsLoopUpDone:
 	CMP #$01
 	BNE _snakeInputsLoopDownDone
-	INC snakeTempPos_Y
+	;down
+	DEC snakeTempPos_Y
 	JMP _snakeInputsLoopRightDone
 _snakeInputsLoopDownDone:
 	CMP #$02
 	BNE _snakeInputsLoopLeftDone
-	DEC snakeTempPos_X
+	;left
+	INC snakeTempPos_X
 	JMP _snakeInputsLoopRightDone
 _snakeInputsLoopLeftDone:
-	INC snakeTempPos_X
+	;right
+	DEC snakeTempPos_X
 _snakeInputsLoopRightDone:
 
+	;check for body colission
 	LDA snakeTempPos_X
 	CMP snakePos_X
-	BEQ _snakeBumped
+	BNE _snakeInputsNoBumps
 	LDA snakeTempPos_Y
 	CMP snakePos_Y
 	BEQ _snakeBumped
+_snakeInputsNoBumps:
+
+	;shift it
+	LSR snakeInputsDummy
+	LSR snakeInputsDummy
 
 	;done, next "inner" iteration
-	DEY
-	LSR snakeInputsDummy
-	LSR snakeInputsDummy
-	JMP _snakeInputsLoop
-_snakeInputsLoopInnerDone:
-
-	;now shift current byte
-	LDA snakeInputsTemp		;this is faster
-	ASL	A
-	LDA snakeInputsTemp
-	ROL snakeInputs, X
-	ROL A
-	ROL snakeInputs, X
-	ROL A
-	ASL A
-	ASL A
-	ASL A
-	ASL A
-	ASL A
-	ASL A
-	STA snakeInputsTemp
-
-	;done, next "outer" iteration
-	CPX snakeInputsAllBytes
-	BEQ _snakeInputsLoopDone		;here, have completed the last inner interation
-	INX
-	LDA snakeInputs, X
-	STA snakeInputsDummy
-	LDY #$04
-	CPX snakeInputsAllBytes
-	BNE _snakeInputsLoop
-	;now at the last iteration which could have 0 to 3 elements
-	;last 2 bits of snakeLength_lo holds the number of elements
-	LDA snakeLength_lo
-	AND #%00000011
-	TAY
 	JMP _snakeInputsLoop
 
 
 _snakeBumped:
 
 _snakeInputsLoopDone:
-;in temp is the #%11000000 outshifted direction
-;update snakeTempPos as tail
+;update snakeTempPos as tail, wait maybe not, the empty one instead
 ;update updated snakeTempPos as empty tile
 	LDA snakeInputsTemp
-	LSR A
-	LSR A
-	LSR A
-	LSR A
-	LSR A
-	LSR A
 	CLC
 	ADC #SNAKE_CHR_TAIL_ROW
 	TAY

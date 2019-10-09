@@ -95,7 +95,8 @@ snakeLastInput      .rs 1
 
 ;snake inputs/buffer, takes up a lot of RAM, can still use an 8-bit indexer
 snakeInputs 		.rs $40;(WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4
-snakeInputsTemp		.rs 1
+snakeInputsTemp				.rs 1
+snakeInputsTempTemp			.rs 1
 snakeInputsLastElements		.rs 1
 snakeInputsAllBytes			.rs 1
 snakeInputsDummy			.rs 1
