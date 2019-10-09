@@ -23,20 +23,13 @@ GAME_STATE_TITLE = $00		;gamestates
 GAME_STATE_PLAYING = $01
 GAME_STATE_GAMEOVER = $02
 
-WALL_TOP = $04				;in tiles
-WALL_BOTTOM = $2A			;26
-WALL_LEFT = $04
-WALL_RIGHT = $2A
+WALL_TOP = $02				;in tiles
+WALL_BOTTOM = $19			;26
+WALL_LEFT = $02
+WALL_RIGHT = $1B
 
 ;don't need a 16 bit value, (32*32)/4=256, very convenient, just under that (maximum: 32*30)
 SNAKE_BUFFER_LENGTH = (WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4
-
-;0-31
-;0-29
-WALL_TOP = $04				;in tiles
-WALL_BOTTOM = $2A			;26
-WALL_LEFT = $04
-WALL_RIGHT = $2A
 
 SNAKE_FRAMES_TO_MOVE_START = 60		;when 60, it moves 1 tile per frame
 
@@ -44,6 +37,7 @@ SNAKE_FRAMES_TO_MOVE_START = 60		;when 60, it moves 1 tile per frame
 SNAKE_CHR_HEAD_ROW = $40
 SNAKE_CHR_TAIL_ROW = $44
 SNAKE_CHR_BODY_ROW = $48
+SNAKE_CHR_EMPTY_TILE = $30
 
 
 ;POINTERS
@@ -84,7 +78,6 @@ gameState			.rs 1		;use states defined as constants
 ;ticks in this case: frames between that the snake moves
 snakeFramesToMove 	.rs 1
 snakeTicks			.rs 1
-snakeBumped			.rs 1
 
 ;position, if tiles more than 16x16; two bytes
 snakePos_X          .rs 1

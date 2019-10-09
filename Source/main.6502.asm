@@ -176,12 +176,16 @@ _gameLoop:
 	LDA gameState
 
 	CMP #GAME_STATE_PLAYING
-	BNE Forever
+	BNE _notGameStatePlaying
 	JSR _gameStatePlaying
+	JMP Forever
+_notGameStatePlaying:
 
 	CMP #GAME_STATE_TITLE
-	BNE Forever
+	BNE _notGameStateTitle
 	JSR _gameStateTitle
+	JMP Forever
+_notGameStateTitle:
 
 	CMP #GAME_STATE_GAMEOVER
 	BNE Forever

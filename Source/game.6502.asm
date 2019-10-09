@@ -136,10 +136,9 @@ _tick:
 	BNE _snakePosDone
 
 _bumped:
-	LDA #$01
-	STA snakeBumped
-	;LDA GAME_STATE_GAMEOVER
-	;STA gameState
+	LDA #GAME_STATE_GAMEOVER
+	STA gameState
+
 _snakePosDone:
 	;update namBuffer through UpdateNamPos
 	LDA #SNAKE_CHR_HEAD_ROW
@@ -267,13 +266,13 @@ _snakeInputsNoBumps:
 
 
 _snakeBumped:
+	LDA #GAME_STATE_GAMEOVER
+	STA gameState
 
 _snakeInputsLoopDone:
 ;update snakeTempPos as tail, wait maybe not, the empty one instead
 ;update updated snakeTempPos as empty tile
-	LDA snakeInputsTemp
-	CLC
-	ADC #SNAKE_CHR_TAIL_ROW
+	LDA #SNAKE_CHR_EMPTY_TILE
 	TAY
 	LDA snakeTempPos_X
 	LDX snakeTempPos_Y
@@ -295,7 +294,4 @@ _gameStateTitle:
 
 ;GAME STATE GAME OVER
 _gameStateGameOver:
-	LDA #GAME_STATE_PLAYING
-	STA gameState
-
 	RTS

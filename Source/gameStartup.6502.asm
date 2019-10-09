@@ -1,7 +1,7 @@
 ;GAME STARTUP
 
 ;start game state
-    LDA #GAME_STATE_PLAYING
+    LDA #GAME_STATE_TITLE
     STA gameState
 
 ;snake psosition
