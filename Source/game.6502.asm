@@ -11,26 +11,35 @@ _gameStatePlaying:
 	CMP #%00001000
 	BNE _snakePersistantInputUpDone
 	LDX #$00
-	STX snakeLastInput
+	STX snakeLastInputTemp
 _snakePersistantInputUpDone:
 
 	CMP #%00000100
 	BNE _snakePersistantInputDownDone
 	LDX #$01
-	STX snakeLastInput
+	STX snakeLastInputTemp
 _snakePersistantInputDownDone:
 
 	CMP #%00000010
 	BNE _snakePersistantInputLeftDone
 	LDX #$02
-	STX snakeLastInput
+	STX snakeLastInputTemp
 _snakePersistantInputLeftDone:
 
 	CMP #%00000001
 	BNE _snakePersistantInputRightDone
 	LDX #$03
-	STX snakeLastInput
+	STX snakeLastInputTemp
 _snakePersistantInputRightDone:
+;;;;;;;;;;
+	LDA snakeLastInputTemp
+	EOR #$01
+	CMP snakeLastTickInput
+	BEQ _snakePersistantInputDone
+	LDA snakeLastInputTemp
+	STA snakeLastInput
+_snakePersistantInputDone:
+
 ;;;;;;;;;;
 
 	LDX snakeTicks
@@ -278,6 +287,8 @@ _snakeInputsLoopDone:
 	LDX snakeTempPos_Y
 	JSR UpdateNamPos
 
+	LDA snakeLastInput
+	STA snakeLastTickInput
 
 ;return from tick
 	RTS

@@ -18,6 +18,7 @@
 ;snake last input
     LDA #$03    ;right, facing right in the beginning
     STA snakeLastInput
+    STA snakeLastInputTemp
 
 ;snake length
 	LDA #$04

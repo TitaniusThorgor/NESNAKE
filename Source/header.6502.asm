@@ -85,6 +85,8 @@ snakePos_Y          .rs 1
 snakeTempPos_X		.rs 1
 snakeTempPos_Y		.rs 1
 snakeLastInput      .rs 1
+snakeLastInputTemp	.rs 1
+snakeLastTickInput	.rs 1
 
 ;snake inputs/buffer, takes up a lot of RAM, can still use an 8-bit indexer
 snakeInputs 		.rs $40;(WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4
