@@ -196,6 +196,9 @@ _snakePosDone:
 	STA snakeInputsDummy
 
 	LDX #$FF
+
+
+;OUTER LOOP
 _snakeInputsOuterLoop:
 	CPX snakeInputsAllBytes		;no worries
 	BEQ _snakeInputsLoopDone

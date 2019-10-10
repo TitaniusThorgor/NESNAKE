@@ -12,7 +12,7 @@
     STA snakePos_Y
 
 ;amount of frames to move
-    LDA #$20
+    LDA #$10
     STA snakeFramesToMove
 
 ;snake last input
@@ -21,7 +21,7 @@
     STA snakeLastInputTemp
 
 ;snake length
-	LDA #$04
+	LDA #$05
 	STA snakeLength_lo
 	LDA #$00
 	STA snakeLength_hi
