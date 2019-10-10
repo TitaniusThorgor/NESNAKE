@@ -126,14 +126,6 @@ _loadStartupAttributeLoop:
 	BNE _loadStartupAttributeLoop
 	
 	
-;LOAD TEST META SPRITE
-	LDX #$00
-_loadFirstMetaSpriteLoop:
-	LDA testSpriteData, x	;loads the data table to the sprite table in memory
-	STA $0200, x
-	INX
-	CPX #$10
-	BNE _loadFirstMetaSpriteLoop
 	;sprite data: $0200 - $0240 with 4 bytes interval
 	;sprite data layout: 
 	;1 - Y Position - vertical position of the sprite on screen. $00 is the top of the screen. Anything above $EF is off the bottom of the screen.
@@ -309,16 +301,6 @@ _input2Loop:
 	BNE _input2Loop
 
 
-;TEST sprites
-	LDX $0200
-	LDY playerOneInput
-	CPY #$00000010
-	BNE _spriteLeftDone
-	DEX
-	STX $0200
-_spriteLeftDone:
-
-
 
 ;end of NMI
 	LDA #$01
@@ -341,13 +323,6 @@ background:
 
 	.rsset background + 960
 attribute	.rs 0
-
-
-testSpriteData:
-	.db $80, $00, $00, $80   ;sprite 0
-	.db $80, $00, $00, $88   ;sprite 1
-	.db $88, $00, $00, $80   ;sprite 2
-	.db $88, $00, $00, $88   ;sprite 3
 
 
 ;INTERRUPTS OR VECTORS
