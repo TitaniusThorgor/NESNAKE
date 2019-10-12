@@ -175,10 +175,10 @@ _snakePosDone:
 ;loop time
 	;snakeLastInput must not have any ones apart from bit 0 and 1
 	LDA snakeLastInput
-	AND #$03
-	STA snakeInputsTemp		;
+	AND #%00000011
+	STA snakeInputsTemp
 
-;create "meta loop" counter
+	;create "meta loop" counter
 	LDA snakeLength_hi
 	LSR A
 	TAX
@@ -192,15 +192,12 @@ _snakePosDone:
 	STA snakeInputsAllBytes		;the "meta loop" counter
 	;the "last inner loop" counter is the two last bits in snakeLength_lo
 
-	LDA snakeInputs
-	STA snakeInputsDummy
-
 	LDX #$FF
 
 
 ;OUTER LOOP
 _snakeInputsOuterLoop:
-	CPX snakeInputsAllBytes		;no worries
+	CPX snakeInputsAllBytes
 	BEQ _snakeInputsLoopDone
 	INX
 	CPX snakeInputsAllBytes
@@ -212,8 +209,12 @@ _snakeInputsOuterLoop:
 	INY		;because of the y offset which is beneficial for the loop
 	JMP _snakeInputsBoundsCheckDone
 _snakeInputsNotQuitting:
-	LDY #$04
+	LDY #$05
 _snakeInputsBoundsCheckDone:
+
+	;clear temp's temp
+	LDA #$00
+	STA snakeInputsTempTemp
 
 	;now shift current byte
 	LDA snakeInputs, X		;this is faster
@@ -284,11 +285,12 @@ _snakeBumped:
 _snakeInputsLoopDone:
 ;update snakeTempPos as tail, wait maybe not, the empty one instead
 ;update updated snakeTempPos as empty tile
-	LDA #SNAKE_CHR_EMPTY_TILE
+	LDA #$32
 	TAY
 	LDA snakeTempPos_X
 	LDX snakeTempPos_Y
 	JSR UpdateNamPos
+
 
 	LDA snakeLastInput
 	STA snakeLastTickInput

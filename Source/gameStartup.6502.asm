@@ -4,6 +4,16 @@
     LDA #GAME_STATE_TITLE
     STA gameState
 
+;snakeInputs
+    LDA #$FF
+    LDX #$00
+_setSnakeInputs:
+    STA snakeInputs, X
+    INX
+    CPX #SNAKE_BUFFER_LENGTH
+    BNE _setSnakeInputs
+
+
 ;snake psosition
     LDA #$10
     STA snakePos_X
@@ -12,7 +22,7 @@
     STA snakePos_Y
 
 ;amount of frames to move
-    LDA #$10
+    LDA #$20
     STA snakeFramesToMove
 
 ;snake last input
@@ -21,7 +31,7 @@
     STA snakeLastInputTemp
 
 ;snake length
-	LDA #$05
+	LDA #$08
 	STA snakeLength_lo
 	LDA #$00
 	STA snakeLength_hi
