@@ -17,6 +17,8 @@ VBlank/NMI NesDev page: http://wiki.nesdev.com/w/index.php/The_frame_and_NMIs
 Optimitations: https://wiki.nesdev.com/w/index.php/6502_assembly_optimisations
 FCEUX debugger: http://wiki.nesdev.com/w/index.php/FCEUX_debugger
 
+PRNG: https://wiki.nesdev.com/w/index.php/Random_number_generator
+
 Some words of wisdom:
 	"All programming languages have three basic concepts. They are instructions, variables, and control flow. If any of those three are missing it is no longer a true programming language. For example HTML has no control flow so it is not a programming language."
 	The NES's CPU is actually a 2A03, a variant of the 6502. The PPU is a 2C02.

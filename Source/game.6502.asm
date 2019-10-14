@@ -42,9 +42,9 @@ _snakePersistantInputDone:
 
 ;;;;;;;;;;
 
-	LDX snakeTicks
+	LDX snakeFrames
 	INX
-	STX snakeTicks
+	STX snakeFrames
 	CPX snakeFramesToMove
 	BNE _tickDone
 	JSR _tick
@@ -110,8 +110,16 @@ _updatePosDone:
 
 ;Tick
 _tick:
+
+	;reset snakeFrames
 	LDA #$00
-	STA snakeTicks
+	STA snakeFrames
+
+	;display fruit
+	LDY #FRUIT_CHR
+	LDA fruitPos_X
+	LDX fruitPos_Y
+	JSR UpdateNamPos
 
 	;display a body tile in the previous tick's head's position
 	LDA snakeInputs
@@ -294,6 +302,45 @@ _snakeInputsLoopDone:
 
 	LDA snakeLastInput
 	STA snakeLastTickInput
+
+
+
+	;check for collision with fruit
+	LDA snakePos_X
+	CMP fruitPos_X
+	BNE _snakeAfterIncrease
+	LDA snakePos_Y
+	CMP fruitPos_Y
+	BNE _snakeAfterIncrease
+
+	;increase length
+	LDA snakeLength_lo
+	CLC
+	ADC #$01
+	STA snakeLength_lo
+	LDA snakeLength_hi
+	ADC #$00
+	STA snakeLength_hi
+
+	;change position of fruit
+	JSR PRNG
+	LSR A
+	LSR A
+	LSR A
+	TAX
+	DEX
+	DEX
+	JSR PRNG
+	LSR A
+	LSR A
+	LSR A
+	LDY #FRUIT_CHR
+
+	STA fruitPos_X
+	STX fruitPos_Y
+	JSR UpdateNamPos
+
+_snakeAfterIncrease:
 
 ;return from tick
 	RTS

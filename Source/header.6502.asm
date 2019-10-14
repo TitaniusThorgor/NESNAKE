@@ -23,10 +23,10 @@ GAME_STATE_TITLE = $00		;gamestates
 GAME_STATE_PLAYING = $01
 GAME_STATE_GAMEOVER = $02
 
-WALL_TOP = $02				;in tiles
-WALL_BOTTOM = $19			;26
-WALL_LEFT = $02
-WALL_RIGHT = $1B
+WALL_TOP = 3				;in tiles
+WALL_BOTTOM = 26			;26
+WALL_LEFT = 4
+WALL_RIGHT = 27
 
 ;don't need a 16 bit value, (32*32)/4=256, very convenient, just under that (maximum: 32*30)
 SNAKE_BUFFER_LENGTH = (WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4
@@ -34,10 +34,11 @@ SNAKE_BUFFER_LENGTH = (WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4
 SNAKE_FRAMES_TO_MOVE_START = 60		;when 60, it moves 1 tile per frame
 
 ;the snake CHR row, index from this with the order: up, down, left, right beginning with head than tail then body
-SNAKE_CHR_HEAD_ROW = $40
-SNAKE_CHR_TAIL_ROW = $44
-SNAKE_CHR_BODY_ROW = $48
-SNAKE_CHR_EMPTY_TILE = $30
+SNAKE_CHR_HEAD_ROW		= $40
+SNAKE_CHR_TAIL_ROW		= $44
+SNAKE_CHR_BODY_ROW		= $48
+SNAKE_CHR_EMPTY_TILE	= $30
+FRUIT_CHR				= $34
 
 
 ;POINTERS
@@ -65,6 +66,9 @@ namBuffer			.rs $9F
 ;don't forget to add setup when needed
 generalVar			.rsset $0300			;prevous to this: sprite DMA
 
+;PRNG seed
+seed				.rs 2
+
 ;background directives
 backgroundDir_lo	.rs 1
 backgroundDir_hi	.rs 1
@@ -77,7 +81,7 @@ gameState			.rs 1		;use states defined as constants
 
 ;ticks in this case: frames between that the snake moves
 snakeFramesToMove 	.rs 1
-snakeTicks			.rs 1
+snakeFrames			.rs 1
 
 ;position, if tiles more than 16x16; two bytes
 snakePos_X          .rs 1
@@ -100,3 +104,7 @@ snakeInputsDummy			.rs 1
 ;use this to loop the correct amount of snake inputs every tick
 snakeLength_lo			.rs 1
 snakeLength_hi			.rs 1
+
+;fruit position
+fruitPos_X				.rs 1
+fruitPos_Y				.rs 1

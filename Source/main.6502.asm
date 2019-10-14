@@ -142,10 +142,6 @@ _loadStartupAttributeLoop:
 	
 	.include "gameStartup.6502.asm"
 
-	;set namBuffer
-	LDA #$00
-	STA namBuffer
-
 	;enable NMI, sprites from pattern table table 0
 	LDA #%10000000
 	STA $2000
@@ -222,6 +218,22 @@ NamAdd:
 
 	RTS
 
+;PRNG, a pseudorandom number generatior taken from NesDev
+;seed needs to be set someware at the start of the game
+;usage: this fills A with the generated number, also uses Y
+PRNG:
+	LDY #08     	;iteration count (generates 8 bits)
+	LDA seed
+_PRNG_loop:
+	ASL A			;shift the register
+	ROL seed + 1
+	BCC _PRNG_loop
+	EOR #$39		;apply XOR feedback whenever a 1 bit is shifted out
+	DEY
+	BNE _PRNG_loop
+	STA seed
+	CMP #00			;reload flags
+	RTS
 
 
 ;NMI
@@ -314,12 +326,12 @@ _input2Loop:
 	.bank 1
 	.org $E000
 palette:
-	.incbin "Palettes/persistant.pal"
+	.incbin "persistant.pal"
 	;0 of the 4 colors in one pallete: beginning of the sprite table
-	.incbin "Palettes/persistant.pal"
+	.incbin "persistant.pal"
 	
 background:
-	.incbin "Backgrounds/snake.nam"
+	.incbin "snake.nam"
 
 	.rsset background + 960
 attribute	.rs 0
