@@ -305,6 +305,8 @@ _snakeInputsLoopDone:
 
 
 
+
+;FRUIT
 	;check for collision with fruit
 	LDA snakePos_X
 	CMP fruitPos_X
@@ -322,25 +324,47 @@ _snakeInputsLoopDone:
 	ADC #$00
 	STA snakeLength_hi
 
-	;change position of fruit
+	;change position of fruit, at the time of the writing, no other process is using the seed
+_fruitChangePosition_Y:
 	JSR PRNG
 	LSR A
 	LSR A
 	LSR A
 	TAX
-	DEX
-	DEX
+	;check if inside bounds of the playing area, WALL_TOP and WALL_BOTTOM, if it is, roll again
+_fruitCheckLoop_Y:
+	CPX #WALL_TOP
+	BEQ _fruitChangePosition_Y
+	INX
+	BEQ	_fruitChangePosition_Y		;if it hits zero; out of rage, thereby inside of the walls
+	CPX #WALL_BOTTOM
+	BNE _fruitCheckLoop_Y
+;now y is in A
+	TAX
+
+_fruitChangePosition_X
 	JSR PRNG
 	LSR A
 	LSR A
 	LSR A
+	TAY
+_fruitCheckLoop_X:
+	CPY #WALL_LEFT
+	BEQ _fruitChangePosition_X
+	INY
+	BEQ _fruitChangePosition_X
+	CPY #WALL_RIGHT
+	BNE _fruitCheckLoop_X
+;now x is in A
+;done, now it's in a valid position
+
 	LDY #FRUIT_CHR
 
 	STA fruitPos_X
 	STX fruitPos_Y
 	JSR UpdateNamPos
-
 _snakeAfterIncrease:
+;FRUIT DONE
 
 ;return from tick
 	RTS
