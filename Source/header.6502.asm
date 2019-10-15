@@ -92,8 +92,7 @@ snakeLastInput      .rs 1
 snakeLastInputTemp	.rs 1
 snakeLastTickInput	.rs 1
 
-;snake inputs/buffer, takes up a lot of RAM, can still use an 8-bit indexer
-snakeInputs 		.rs (WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4
+;snake buffer variables, could use a temporary variable for some of these; not doing that for readability
 snakeInputsTemp				.rs 1
 snakeInputsTempTemp			.rs 1
 snakeInputsLastElements		.rs 1
@@ -108,3 +107,6 @@ snakeLength_hi			.rs 1
 ;fruit position
 fruitPos_X				.rs 1
 fruitPos_Y				.rs 1
+
+;snake inputs/buffer, takes up a lot of RAM, can still use an 8-bit indexer
+snakeInputs 		.rs (WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4

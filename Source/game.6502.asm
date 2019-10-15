@@ -293,7 +293,9 @@ _snakeBumped:
 _snakeInputsLoopDone:
 ;update snakeTempPos as tail, wait maybe not, the empty one instead
 ;update updated snakeTempPos as empty tile
-	LDA #$32
+	LDA snakeInputsDummy
+	CLC
+	ADC #SNAKE_CHR_TAIL_ROW
 	TAY
 	LDA snakeTempPos_X
 	LDX snakeTempPos_Y

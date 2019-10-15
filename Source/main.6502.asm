@@ -273,7 +273,6 @@ _namUpdateLoop:
 	DEX		;element 0 is a flag and has already been read, this is just perfect flag/layout management, got rid of that CMP opcode
 	BNE _namUpdateLoop
 
-
 	STX namBuffer
 _afterNamUpdate:
 
@@ -286,7 +285,6 @@ _afterNamUpdate:
 	LDA #$00
 	STA $2005		;tells PPU there is no background scrolling
 	STA $2005
-
 
 
 ;INPUT

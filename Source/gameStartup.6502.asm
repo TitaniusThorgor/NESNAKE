@@ -21,11 +21,9 @@ _setSnakeInputs:
     CPX #SNAKE_BUFFER_LENGTH
     BNE _setSnakeInputs
 
-
 ;snake psosition
     LDA #$10
     STA snakePos_X
-
     LDA #$10
     STA snakePos_Y
 
@@ -38,8 +36,8 @@ _setSnakeInputs:
     STA snakeLastInput
     STA snakeLastInputTemp
 
-;snake length
-	LDA #$08
+;snake length, snake is this +1 long
+	LDA #$03
 	STA snakeLength_lo
 	LDA #$00
 	STA snakeLength_hi
