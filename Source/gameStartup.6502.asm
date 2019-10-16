@@ -37,7 +37,7 @@ _setSnakeInputs:
     STA snakeLastInputTemp
 
 ;snake length, snake is this +1 long
-	LDA #$03
+	LDA #$05
 	STA snakeLength_lo
 	LDA #$00
 	STA snakeLength_hi

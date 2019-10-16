@@ -95,9 +95,9 @@ snakeLastTickInput	.rs 1
 ;snake buffer variables, could use a temporary variable for some of these; not doing that for readability
 snakeInputsTemp				.rs 1
 snakeInputsTempTemp			.rs 1
-snakeInputsLastElements		.rs 1
 snakeInputsAllBytes			.rs 1
 snakeInputsDummy			.rs 1
+snakeInputsLastElements		.rs 1
 
 ;snake length, update this when snake eats a fruit
 ;use this to loop the correct amount of snake inputs every tick

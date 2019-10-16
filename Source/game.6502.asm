@@ -213,6 +213,7 @@ _snakeInputsOuterLoop:
 	;set y to "last inner loop"
 	LDA snakeLength_lo
 	AND #%00000011
+	STA snakeInputsLastElements
 	TAY
 	INY		;because of the y offset which is beneficial for the loop
 	JMP _snakeInputsBoundsCheckDone
@@ -291,15 +292,56 @@ _snakeBumped:
 	STA gameState
 
 _snakeInputsLoopDone:
+
+;set the last outshifted position to empty tile
+;snakeInputsAllBytes
+;snakeInputsLastElements
+;get the two last relevant bits in the last outer-loop iteration
+	LDY snakeInputsLastElements
+	INY
+	LDA snakeInputs, X
+	;shift it depending on Y
+_snakeEmptyTileLoop:
+	DEY 
+	BEQ _snakeEmptyTileLoopDone
+	LSR A
+	LSR A
+_snakeEmptyTileLoopDone:
+	AND #%00000011
+	STA snakeInputsTempTemp
+
 ;update snakeTempPos as tail, wait maybe not, the empty one instead
 ;update updated snakeTempPos as empty tile
 	LDA snakeInputsDummy
+	AND #%00000011
 	CLC
 	ADC #SNAKE_CHR_TAIL_ROW
 	TAY
 	LDA snakeTempPos_X
 	LDX snakeTempPos_Y
 	JSR UpdateNamPos
+
+;display the empty tile
+	LDA snakeInputsTempTemp
+	;do an invert
+	TAX		;at the time being
+	AND #%00000001
+	BEQ _snakeEmptyTilePrimary
+	DEX
+	JMP _snakeEmptyTileAfterInvert
+_snakeEmptyTilePrimary:
+	INX
+_snakeEmptyTileAfterInvert:
+	TXA
+	LDX snakeTempPos_X
+	LDY snakeTempPos_Y
+	JSR UpdatePos
+	STY snakeInputsTempTemp
+	TXA
+	LDX snakeInputsTempTemp
+	LDY #SNAKE_CHR_EMPTY_TILE
+	JSR UpdateNamPos
+
 
 
 	LDA snakeLastInput
