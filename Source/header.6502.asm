@@ -11,7 +11,6 @@
 ;temporary labels e.g. for loops: _camelCasing
 ;subroutines/functions: PascalCasing
 ;constants: SNAKE_CASING (with all-capital letters)
-;graphics adresses: SNAKE_CASING_sp and SNAKE_CASING_ba
 ;interrupts: SNAKE_CASING (same here)
 
 

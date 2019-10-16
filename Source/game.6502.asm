@@ -278,25 +278,20 @@ _snakeInputsLoopRightDone:
 	CMP snakePos_Y
 	BEQ _snakeBumped
 _snakeInputsNoBumps:
-
 	;shift it
 	LSR snakeInputsDummy
 	LSR snakeInputsDummy
-
 	;done, next "inner" iteration
 	JMP _snakeInputsLoop
-
 
 _snakeBumped:
 	LDA #GAME_STATE_GAMEOVER
 	STA gameState
-
 _snakeInputsLoopDone:
 
-;set the last outshifted position to empty tile
-;snakeInputsAllBytes
-;snakeInputsLastElements
-;get the two last relevant bits in the last outer-loop iteration
+
+
+;get the two last relevant bits in the last outer-loop iteration for the last tile update: empty tile
 	LDY snakeInputsLastElements
 	INY
 	LDA snakeInputs, X
@@ -310,8 +305,8 @@ _snakeEmptyTileLoopDone:
 	AND #%00000011
 	STA snakeInputsTempTemp
 
-;update snakeTempPos as tail, wait maybe not, the empty one instead
-;update updated snakeTempPos as empty tile
+
+;update snakeTempPos as tail
 	LDA snakeInputsDummy
 	AND #%00000011
 	CLC
@@ -320,6 +315,7 @@ _snakeEmptyTileLoopDone:
 	LDA snakeTempPos_X
 	LDX snakeTempPos_Y
 	JSR UpdateNamPos
+
 
 ;display the empty tile
 	LDA snakeInputsTempTemp
