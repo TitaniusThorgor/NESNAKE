@@ -213,9 +213,8 @@ _snakeInputsOuterLoop:
 	;set y to "last inner loop"
 	LDA snakeLength_lo
 	AND #%00000011
-	STA snakeInputsLastElements
 	TAY
-	INY		;because of the y offset which is beneficial for the loop
+	INY		;because of the y offset
 	JMP _snakeInputsBoundsCheckDone
 _snakeInputsNotQuitting:
 	LDY #$05
@@ -288,22 +287,47 @@ _snakeBumped:
 	LDA #GAME_STATE_GAMEOVER
 	STA gameState
 _snakeInputsLoopDone:
+;done, now display tail and empty tile
 
 
 
-;get the two last relevant bits in the last outer-loop iteration for the last tile update: empty tile
-	LDY snakeInputsLastElements
-	INY
+;empty tile
+;snakeInputsAllBytes
+;snakeLength_lo, anded
+	LDA snakeLength_lo
+	AND #%00000011
+	BEQ _snakeEmptyTileZero
+	TAY
 	LDA snakeInputs, X
-	;shift it depending on Y
 _snakeEmptyTileLoop:
-	DEY 
-	BEQ _snakeEmptyTileLoopDone
 	LSR A
 	LSR A
+	DEY
+	BNE _snakeEmptyTileLoop
+	JMP _snakeEmptyTileLoopDone
+_snakeEmptyTileZero:
+	LDA snakeInputs, X			;there, if zero, A can't be shifted left
 _snakeEmptyTileLoopDone:
 	AND #%00000011
-	STA snakeInputsTempTemp
+	;now A is loaded with the REVERSED direction
+	TAX
+	AND #%00000001
+	BEQ _snakeEmptyTileAdd
+	DEX
+	JMP _snakeEmptyTileReverseDone
+_snakeEmptyTileAdd:
+	INX
+_snakeEmptyTileReverseDone:
+	TXA
+	LDX snakeTempPos_X
+	LDY snakeTempPos_Y
+	JSR UpdatePos
+	TXA
+	STY snakeInputsTempTemp
+	LDX snakeInputsTempTemp
+	LDY #SNAKE_CHR_EMPTY_TILE
+	JSR UpdateNamPos
+
 
 
 ;update snakeTempPos as tail
@@ -317,33 +341,12 @@ _snakeEmptyTileLoopDone:
 	JSR UpdateNamPos
 
 
-;display the empty tile
-	LDA snakeInputsTempTemp
-	;do an invert
-	TAX		;at the time being
-	AND #%00000001
-	BEQ _snakeEmptyTilePrimary
-	DEX
-	JMP _snakeEmptyTileAfterInvert
-_snakeEmptyTilePrimary:
-	INX
-_snakeEmptyTileAfterInvert:
-	TXA
-	LDX snakeTempPos_X
-	LDY snakeTempPos_Y
-	JSR UpdatePos
-	STY snakeInputsTempTemp
-	TXA
-	LDX snakeInputsTempTemp
-	LDY #SNAKE_CHR_EMPTY_TILE
-	JSR UpdateNamPos
 
 
 
+;tick input (the snake doesn't do a 180 degree turn)
 	LDA snakeLastInput
 	STA snakeLastTickInput
-
-
 
 
 ;FRUIT
