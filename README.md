@@ -1,3 +1,3 @@
 Project_Gramfeld:
 
-It's Just snake for the NES
+It's just Snake for the NES
