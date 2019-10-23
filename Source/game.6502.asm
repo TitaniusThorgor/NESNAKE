@@ -121,11 +121,25 @@ _tick:
 	LDX fruitPos_Y
 	JSR UpdateNamPos
 
+
 	;display a body tile in the previous tick's head's position
+	LDA snakeInputs
+	AND #%00000011
+	CMP snakeLastInput
+	BEQ _snakeStraight
+	;curvs
+	ASL A
+	ASL A
+	CLC
+	ADC snakeLastInput
+	ADC #SNAKE_CHR_BODY_CURVES
+	JMP _snakeUpdateBody
+_snakeStraight:
 	LDA snakeInputs
 	AND #%00000011
 	CLC
 	ADC #SNAKE_CHR_BODY_ROW
+_snakeUpdateBody:
 	TAY
 	LDA snakePos_X
 	LDX snakePos_Y
@@ -291,6 +305,7 @@ _snakeInputsLoopDone:
 
 
 
+
 ;empty tile
 ;snakeInputsAllBytes
 ;snakeLength_lo, anded
@@ -331,8 +346,37 @@ _snakeEmptyTileReverseDone:
 
 
 ;update snakeTempPos as tail
-	LDA snakeInputsDummy
+;snakeInputsAllBytes
+;snakeLength_lo AND #03
+	LDA snakeLength_lo
 	AND #%00000011
+	BNE _snakeTailNotZero
+	LDX snakeInputsAllBytes
+	DEX
+	LDA snakeInputs, X
+	AND #%00110000
+	JMP _snakeTailEvaluated
+_snakeTailNotZero
+	CMP #$01
+	BNE _snakeTailNotOne
+	;one
+	DEX
+	LDA snakeInputs, X
+	AND #%11000000
+	JMP _snakeTailEvaluated
+_snakeTailNotOne
+	CMP #$02
+	BNE _snakeTailNotTwo
+	;two
+	LDA snakeInputs, X
+	AND #%00000011
+	JMP _snakeTailEvaluated
+_snakeTailNotTwo
+	;three
+	LDA snakeInputs, X
+	AND #%00001100
+_snakeTailEvaluated
+
 	CLC
 	ADC #SNAKE_CHR_TAIL_ROW
 	TAY
