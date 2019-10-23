@@ -348,33 +348,47 @@ _snakeEmptyTileReverseDone:
 ;update snakeTempPos as tail
 ;snakeInputsAllBytes
 ;snakeLength_lo AND #03
+	LDX snakeInputsAllBytes
+	DEX
 	LDA snakeLength_lo
 	AND #%00000011
 	BNE _snakeTailNotZero
-	LDX snakeInputsAllBytes
 	DEX
 	LDA snakeInputs, X
 	AND #%00110000
+	LSR A
+	LSR A
+	LSR A
+	LSR A
 	JMP _snakeTailEvaluated
 _snakeTailNotZero
 	CMP #$01
 	BNE _snakeTailNotOne
 	;one
-	DEX
 	LDA snakeInputs, X
 	AND #%11000000
+	LSR A
+	LSR A
+	LSR A
+	LSR A
+	LSR A
+	LSR A
 	JMP _snakeTailEvaluated
 _snakeTailNotOne
 	CMP #$02
 	BNE _snakeTailNotTwo
 	;two
+	INX
 	LDA snakeInputs, X
 	AND #%00000011
 	JMP _snakeTailEvaluated
 _snakeTailNotTwo
 	;three
+	INX
 	LDA snakeInputs, X
 	AND #%00001100
+	LSR A
+	LSR A
 _snakeTailEvaluated
 
 	CLC
