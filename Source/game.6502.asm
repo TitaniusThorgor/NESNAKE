@@ -405,7 +405,30 @@ _snakeTailEvaluated
 ;tick input (the snake doesn't do a 180 degree turn)
 	LDA snakeLastInput
 	STA snakeLastTickInput
+	
+;TICKSOUND
 
+;	} LowBeep
+	LDA #%10010011	;volume for the tone + duty of 50%
+	STA $4000
+	
+	LDA #$FB
+	STA $4002		;Height of the tone
+	
+	LDA #%10000001
+	STA $4003		;Length of the tone + tone legth hi-byte
+;	}
+	
+;	{HighBeep
+	LDA #%10010011	;volume for the tone + duty of 50%
+	STA $4000
+	
+	LDA #$FE
+	STA $4002		;Height of the tone
+	
+	LDA #%10000001
+	STA $4003		;Length of the tone + tone legth hi-byte
+;	}
 
 ;FRUIT
 	;check for collision with fruit
@@ -415,6 +438,16 @@ _snakeTailEvaluated
 	LDA snakePos_Y
 	CMP fruitPos_Y
 	BNE _snakeAfterIncrease
+
+	;ElongationSounds
+	LDA #%10010011	;volume for the tone + duty of 50%
+	STA $4000
+	
+	LDA #$CC
+	STA $4002		;Height of the tone
+	
+	LDA #%10000000
+	STA $4003		;Length of the tone + tone legth hi-byte
 
 	;increase length
 	LDA snakeLength_lo
@@ -466,7 +499,7 @@ _fruitCheckLoop_X:
 	JSR UpdateNamPos
 _snakeAfterIncrease:
 ;FRUIT DONE
-
+	
 ;return from tick
 	RTS
 ;;;;
