@@ -11,6 +11,10 @@
 ;start game state
     LDA #GAME_STATE_TITLE
     STA gameState
+	
+;engage sound
+	LDA #$0F
+	STA $4015	;enables pulse , pulse 2, triangle and niose channels
 
 ;snakeInputs
     LDA #$FF
