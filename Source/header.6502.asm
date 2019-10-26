@@ -79,9 +79,17 @@ playerTwoInput		.rs 1		; A   B   Select   Start   Up   Down   Left   Right
 nmiDone				.rs 1
 gameState			.rs 1		;use states defined as constants
 
-;ticks in this case: frames between that the snake moves
+;snakeFramesToMove: frames between that the snake moves
 snakeFramesToMove 	.rs 1
+
+;temporary value used to keep track of how many frames are left for next tick
 snakeFrames			.rs 1
+
+;32 bit value representing the amount of ticks that have passed
+snakeTicks_0		.rs 1
+snakeTicks_1		.rs 1
+snakeTicks_2		.rs 1
+snakeTicks_3		.rs 1
 
 ;position, if tiles more than 16x16; two bytes
 snakePos_X          .rs 1

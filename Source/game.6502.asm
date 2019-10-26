@@ -115,6 +115,25 @@ _tick:
 	LDA #$00
 	STA snakeFrames
 
+	;tick input (the snake doesn't do a 180 degree turn)
+	LDA snakeLastInput
+	STA snakeLastTickInput
+
+	;total amount of ticks
+	LDA snakeTicks_0
+	CLC
+	ADC #$01
+	STA snakeTicks_0
+	LDA snakeTicks_1
+	ADC #$00
+	STA snakeTicks_1
+	LDA snakeTicks_2
+	ADC #$00
+	STA snakeTicks_2
+	LDA snakeTicks_3
+	ADC #$00
+	STA snakeTicks_3
+
 	;display fruit
 	LDY #FRUIT_CHR
 	LDA fruitPos_X
@@ -382,14 +401,12 @@ _snakeTailEvaluated:
 
 
 
-
-
-;tick input (the snake doesn't do a 180 degree turn)
-	LDA snakeLastInput
-	STA snakeLastTickInput
 	
 ;TICKSOUND
 
+	LDA snakeTicks_0
+	AND #%00000001
+	BEQ _snakeTickBeepHigh
 ;	} LowBeep
 	LDA #%10010011	;volume for the tone + duty of 50%
 	STA $4000
@@ -399,8 +416,10 @@ _snakeTailEvaluated:
 	
 	LDA #%10000001
 	STA $4003		;Length of the tone + tone legth hi-byte
+
+	JMP _snakeTickBeepDone
 ;	}
-	
+_snakeTickBeepHigh:
 ;	{HighBeep
 	LDA #%10010011	;volume for the tone + duty of 50%
 	STA $4000
@@ -411,6 +430,8 @@ _snakeTailEvaluated:
 	LDA #%10000001
 	STA $4003		;Length of the tone + tone legth hi-byte
 ;	}
+_snakeTickBeepDone:
+
 
 ;FRUIT
 	;check for collision with fruit
