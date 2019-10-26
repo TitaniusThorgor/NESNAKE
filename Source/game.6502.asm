@@ -349,48 +349,30 @@ _snakeEmptyTileReverseDone:
 ;snakeInputsAllBytes
 ;snakeLength_lo AND #03
 	LDX snakeInputsAllBytes
-	DEX
 	LDA snakeLength_lo
 	AND #%00000011
-	BNE _snakeTailNotZero
+	BEQ _snakeTailZero
+	;not zero
+	TAY
+	LDA snakeInputs, X
+_snakeTailLoop:
+	DEY
+	BEQ _snakeTailEvaluated
+	LSR A
+	LSR A
+	JMP _snakeTailLoop
+_snakeTailZero:
+	;zero
 	DEX
 	LDA snakeInputs, X
-	AND #%00110000
-	LSR A
-	LSR A
-	LSR A
-	LSR A
-	JMP _snakeTailEvaluated
-_snakeTailNotZero
-	CMP #$01
-	BNE _snakeTailNotOne
-	;one
-	LDA snakeInputs, X
-	AND #%11000000
 	LSR A
 	LSR A
 	LSR A
 	LSR A
 	LSR A
 	LSR A
-	JMP _snakeTailEvaluated
-_snakeTailNotOne
-	CMP #$02
-	BNE _snakeTailNotTwo
-	;two
-	INX
-	LDA snakeInputs, X
+_snakeTailEvaluated:
 	AND #%00000011
-	JMP _snakeTailEvaluated
-_snakeTailNotTwo
-	;three
-	INX
-	LDA snakeInputs, X
-	AND #%00001100
-	LSR A
-	LSR A
-_snakeTailEvaluated
-
 	CLC
 	ADC #SNAKE_CHR_TAIL_ROW
 	TAY
