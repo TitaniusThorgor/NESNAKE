@@ -424,7 +424,7 @@ _snakeTickBeepHigh:
 	LDA #%10010011	;volume for the tone + duty of 50%
 	STA $4000
 	
-	LDA #$FE
+	LDA #$BA
 	STA $4002		;Height of the tone
 	
 	LDA #%10000001
@@ -441,16 +441,16 @@ _snakeTickBeepDone:
 	LDA snakePos_Y
 	CMP fruitPos_Y
 	BNE _snakeAfterIncrease
-
 	;ElongationSounds
-	LDA #%10010011	;volume for the tone + duty of 50%
-	STA $4000
-	
-	LDA #$CC
-	STA $4002		;Height of the tone
-	
-	LDA #%10000000
-	STA $4003		;Length of the tone + tone legth hi-byte
+
+	LDA #%00001111
+	STA $400C		;Volume of the noise
+
+	LDA #%00000001
+	STA $400E		;Type of noise (it's a random generator for the noise channel)
+
+	LDA #%1000000
+	STA $400F		;Length of the noise
 
 	;update score
 	LDA score_lo
