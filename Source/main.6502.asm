@@ -227,6 +227,7 @@ _loadBackgroundLoop:
 ;	BNE _loadAttributeLoop
 
 	RTS
+	
 
 
 ;PRNG, a pseudorandom number generatior taken from NesDev
@@ -351,6 +352,11 @@ titleBackground:
 	.rsset titleBackground + 960
 titleAttribute	.rs 0
 
+;gameOver background
+gameOverBackground:
+	.incbin "gameOver.nam"
+	.rsset gameOverBackground + 960
+gameOverAttribute	.rs 0
 
 ;INTERRUPTS OR VECTORS
 	.org $FFFA

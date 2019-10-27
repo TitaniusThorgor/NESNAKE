@@ -186,8 +186,7 @@ _snakeUpdateBody:
 	BNE _snakePosDone
 
 _bumped:
-	LDA #GAME_STATE_GAMEOVER
-	STA gameState
+	JSR ActivateGameOver
 
 _snakePosDone:
 	;update namBuffer through UpdateNamPos
@@ -317,8 +316,7 @@ _snakeInputsNoBumps:
 	JMP _snakeInputsLoop
 
 _snakeBumped:
-	LDA #GAME_STATE_GAMEOVER
-	STA gameState
+	JSR ActivateGameOver
 _snakeInputsLoopDone:
 ;done, now display tail and empty tile
 
@@ -528,6 +526,36 @@ _gameStateTitle:
 	AND #%00010000
 	BEQ _titleNotStarting
 
+	;STARTING
+
+	;snake psosition
+    LDA #SNAKE_START_X
+    STA snakePos_X
+    LDA #SNAKE_START_Y
+    STA snakePos_Y
+
+	;snake length, snake is this +1 long
+	LDA #$02
+	STA snakeLength_lo
+	LDA #$00
+	STA snakeLength_hi
+
+	;fruit position
+    LDA #$15
+    STA fruitPos_X
+	LDA #$10
+    STA fruitPos_Y
+
+	;snake last input
+    LDA #$03    ;right, facing right in the beginning
+    STA snakeLastInput
+    STA snakeLastInputTemp
+
+	;snake inputs/buffer
+    LDA #$FF            ;right in all elements (snake tiles, two bits per tile)
+    STA snakeInputs     ;we start with the length of 4
+
+
 	;starting: update background
 	;disable NMI
 	LDA #$00
@@ -561,6 +589,91 @@ _titleNotStarting:
 	RTS
 
 
+ActivateGameOver:
+	;gameOver screen
+	LDA #$00
+	STA $2000
+	LDA #%00000000
+	STA $2001
+
+	LDA #LOW (gameOverBackground)
+	STA backgroundPtr_lo
+	LDA #HIGH (gameOverBackground)
+	STA backgroundPtr_hi
+
+	LDA #LOW (gameOverBackground + 960)
+	STA backgroundDir_lo
+	LDA #HIGH (gameOverBackground + 960)
+	STA backgroundDir_hi
+
+	JSR LoadNametable
+
+	LDA #%10000000
+	STA $2000
+	LDA #%00011110
+	STA $2001
+
+	;position of snake
+	LDA #SNAKE_START_X
+	STA snakePos_X
+	LDA #SNAKE_START_Y
+	STA snakePos_Y
+
+	LDA #GAME_STATE_GAMEOVER
+	STA gameState
+	PLA
+	PLA
+	JMP _gameStateGameOver
+
+
+
 ;GAME STATE GAME OVER
 _gameStateGameOver:
+	LDX gameOverFrames
+	INX
+	STX gameOverFrames
+	CPX #$40		;amount of frames to wait for title screen
+	BNE _stillGameOver
+
+	LDX #$00
+	STX gameOverFrames
+
+	;send player to the title screen
+	LDA #$00
+	STA $2000
+	LDA #%00000000
+	STA $2001
+
+	;update nametable
+	LDA #LOW (titleBackground)
+	STA backgroundPtr_lo
+	LDA #HIGH (titleBackground)
+	STA backgroundPtr_hi
+
+	LDA #LOW (titleBackground + 960)
+	STA backgroundDir_lo
+	LDA #HIGH (titleBackground + 960)
+	STA backgroundDir_hi
+
+	JSR LoadNametable
+
+	LDA #%10000000
+	STA $2000
+	LDA #%00011110
+	STA $2001
+
+	LDA #GAME_STATE_TITLE
+	STA gameState
+_stillGameOver:
+	RTS
+
+
+;GAME STATE PAUSED
+_gameStatePause:
+	LDA playerOneInput
+	AND #%00010000
+	BNE _stillPaused
+	LDA #GAME_STATE_PLAYING
+	STA gameState
+_stillPaused:
 	RTS

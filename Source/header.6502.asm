@@ -27,6 +27,10 @@ WALL_BOTTOM = 26			;26
 WALL_LEFT = 4
 WALL_RIGHT = 27
 
+;starting pos
+SNAKE_START_X = $09
+SNAKE_START_Y = $10
+
 ;don't need a 16 bit value, (32*32)/4=256, very convenient, just under that (maximum: 32*30)
 SNAKE_BUFFER_LENGTH = (WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4
 
@@ -90,6 +94,9 @@ snakeTicks_3		.rs 1
 ;score
 score_lo			.rs 1
 score_hi			.rs 1
+
+;current number of frames after gameOver
+gameOverFrames		.rs 1
 
 ;position, if tiles more than 16x16; two bytes
 snakePos_X          .rs 1
