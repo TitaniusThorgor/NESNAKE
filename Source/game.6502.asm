@@ -632,7 +632,7 @@ _gameStateGameOver:
 	LDX gameOverFrames
 	INX
 	STX gameOverFrames
-	CPX #$40		;amount of frames to wait for title screen
+	CPX #$80		;amount of frames to wait for title screen
 	BNE _stillGameOver
 
 	LDX #$00
