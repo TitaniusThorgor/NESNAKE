@@ -79,7 +79,7 @@ _snakeUpdateHeadHighLoop:
 _snakeUpdateHeadHighLoopDone:
 	;add to namBuffer, A (which contains the tileIndex in the function) will be loaded with the starting point in CHR, than added with the direction directly
 	TYA
-	;backgroundDir lo and hi are loaded with the correct adresses, minus $2000, A contains tile index
+	;backgroundDir lo and hi are loaded with the correct addresses, minus $2000, A contains tile index
 	JSR NamAdd
 
 	RTS
@@ -452,6 +452,15 @@ _snakeTickBeepDone:
 	LDA #%10000000
 	STA $4003		;Length of the tone + tone legth hi-byte
 
+	;update score
+	LDA score_lo
+	CLC
+	ADC #$01
+	STA score_lo
+	LDA score_hi
+	ADC #$00
+	STA score_hi
+
 	;increase length
 	LDA snakeLength_lo
 	CLC
@@ -510,8 +519,44 @@ _snakeAfterIncrease:
 
 ;GAME STATE TITLE
 _gameStateTitle:
+	
+	;change seed
+	INC seed
+
+	;check for the player to press start
+	LDA playerOneInput
+	AND #%00010000
+	BEQ _titleNotStarting
+
+	;starting: update background
+	;disable NMI
+	LDA #$00
+	STA $2000
+	LDA #%00000000
+	STA $2001
+
+	;load addresses
+	LDA #LOW (background)
+	STA backgroundPtr_lo
+	LDA #HIGH (background)
+	STA backgroundPtr_hi
+
+	LDA #LOW (background + 960)
+	STA backgroundDir_lo
+	LDA #HIGH (attribute + 960)
+	STA backgroundDir_hi
+
+	JSR LoadNametable
+
+	;enable NMI
+	LDA #%10000000
+	STA $2000
+	LDA #%00011110
+	STA $2001
+
 	LDA #GAME_STATE_PLAYING
 	STA gameState
+_titleNotStarting:
 
 	RTS
 

@@ -30,8 +30,6 @@ WALL_RIGHT = 27
 ;don't need a 16 bit value, (32*32)/4=256, very convenient, just under that (maximum: 32*30)
 SNAKE_BUFFER_LENGTH = (WALL_BOTTOM - WALL_TOP) * (WALL_RIGHT - WALL_LEFT) / 4
 
-SNAKE_FRAMES_TO_MOVE_START = 60		;when 60, it moves 1 tile per frame
-
 ;the snake CHR row, index from this with the order: up, down, left, right beginning with head than tail then body
 SNAKE_CHR_HEAD_ROW		= $40
 SNAKE_CHR_TAIL_ROW		= $44
@@ -47,13 +45,15 @@ FRUIT_CHR				= $34
 backgroundPtr_lo	.rs 1
 backgroundPtr_hi	.rs 1
 
+backgroundDir_lo	.rs 1
+backgroundDir_hi	.rs 1
 
 
 ;BACKGROUND BUFFER: OneTileNamBuffer
 ;this buffer format favours standout tile changes
 ;instead of setting VRAM in game code, prepare a buffer in main RAM (for example, use unused parts of the stack at $0100-$019F) before vblank
 ;and then copy from that buffer into VRAM during vblank
-;it's important that as much of the computation is moved out of NMI as possible, the adress is an adress, not an x and y value
+;it's important that as much of the computation is moved out of NMI as possible, the address is an address, not an x and y value
 	.rsset $0100
 
 	;first byte: tells how many elements there are to copy over (this means one element is 3 bytes), if 0, no bytes will be read (if namBuffer is 4 then there are 4 elements in the buffer)
@@ -68,10 +68,6 @@ generalVar			.rsset $0300			;prevous to this: sprite DMA
 
 ;PRNG seed
 seed				.rs 2
-
-;background directives
-backgroundDir_lo	.rs 1
-backgroundDir_hi	.rs 1
 
 ;general
 playerOneInput		.rs 1		;use functions together with a bitwise AND to get input
@@ -90,6 +86,10 @@ snakeTicks_0		.rs 1
 snakeTicks_1		.rs 1
 snakeTicks_2		.rs 1
 snakeTicks_3		.rs 1
+
+;score
+score_lo			.rs 1
+score_hi			.rs 1
 
 ;position, if tiles more than 16x16; two bytes
 snakePos_X          .rs 1

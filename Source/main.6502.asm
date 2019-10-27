@@ -15,7 +15,7 @@ RESET:			;CPU starts reading here
 	TXS			;set up stack
 	INX			;now x = 0
 	;(2000)
-	;76543210
+	;76543210 10010000
 	;| ||||||
 	;| ||||++- Base nametable address
 	;| ||||    (0 = $2000; 1 = $2400; 2 = $2800; 3 = $2C00)
@@ -65,8 +65,8 @@ _clearMem:
 	
 	JSR VBlankWait
 
-;LOAD PALETTS
-	;PPU: palett recognition to adress $3F00
+;LOAD PALETTE
+	;PPU: palett recognition to address $3F00
 	LDA $2002	;read PPU status to reset the high/low latch to high
 	LDA #$3F	;load the high byte
 	STA $2006	;write the high byte
@@ -77,53 +77,24 @@ _clearMem:
 	LDX #$00
 _loadPalettsLoop:
 	LDA palette, x
-	STA $2007			;write the color one by one to the same adress
+	STA $2007			;write the color one by one to the same address
 	INX					;increment x
 	CPX #$20			;compare x with $20 = 32, which is the size of both paletts combined
 	BNE _loadPalettsLoop	;Branch if Not Equal
 	
 	
-;LOAD BACKGROUND
-	LDA $2002             ;read PPU status to reset the high/low latch
-	LDA #$20
-	STA $2006             ;write the high byte of $2000 address (start of nametable 0 in PPU memory)
-	LDA #$00
-	STA $2006             ;write the low byte of $2000 address
-
-	LDA #LOW (background)
+;LOAD TITLE BACKGROUND
+	LDA #LOW (titleBackground) ;some NESASM3 exclusive features
 	STA backgroundPtr_lo
-	LDA #HIGH (background)	;some NESASM3 exclusive features
+	LDA #HIGH (titleBackground)
 	STA backgroundPtr_hi
 
-	LDX #$00
-	LDY #$00
-_loadStartupBackgroundLoop:
-	LDA [backgroundPtr_lo], y
-	STA $2007
+	LDA #LOW (titleAttribute)
+	STA backgroundDir_lo
+	LDA #HIGH (titleAttribute)
+	STA backgroundDir_hi
 
-	INY
-	BNE _loadStartupBackgroundLoop	;let it loop, let it loop, when zero
-
-	INC backgroundPtr_hi	;increment memory (makes the pointer as a whole go up 256 bytes)
-	INX
-
-	CPX #$04	;make the 256 loop four times
-	BNE _loadStartupBackgroundLoop
-	
-	
-;LOAD ATTRIBUTE TABLE
-	LDA $2002             ;read PPU status to reset the high/low latch
-	LDA #$23
-	STA $2006             ;write the high byte of $23C0 address
-	LDA #$C0
-	STA $2006             ;write the low byte of $23C0 address
-	LDX #$00
-_loadStartupAttributeLoop:
-	LDA attribute, x
-	STA $2007             ;write to PPU
-	INX
-	CPX #$20              ;8*4= $20 which is 32 in dec
-	BNE _loadStartupAttributeLoop
+	JSR LoadNametable
 	
 	
 	;sprite data: $0200 - $0240 with 4 bytes interval
@@ -201,7 +172,7 @@ VBlankWait:
 	RTS				;ReTurn from Subroutine
 
 ;adds one change of tile in nametable
-;USAGE: load backgroundDir_hi with the high byte of the adress, backgroundDir_lo with the low byte and A with the tile index
+;USAGE: load backgroundDir_hi with the high byte of the address, backgroundDir_lo with the low byte and A with the tile index
 NamAdd:
 	LDX namBuffer
 	INX
@@ -217,6 +188,46 @@ NamAdd:
 	STX namBuffer
 
 	RTS
+
+;loads both pattern and attributes
+;IMPORTANT: this must be done during VBlank
+;usage: load backgroundPtr with the address of the pattern table, load backgroundDir with address of the nametable
+LoadNametable:
+	LDA $2002             ;read PPU status to reset the high/low latch
+	LDA #$20
+	STA $2006             ;write the high byte of $2000 address (start of nametable 0 in PPU memory)
+	LDA #$00
+	STA $2006             ;write the low byte of $2000 address
+
+	;backgroundPtr_lo and backgroundPtr_hi are loaded
+	LDX #$00
+	LDY #$00
+_loadBackgroundLoop:
+	LDA [backgroundPtr_lo], Y
+	STA $2007
+	INY
+	BNE _loadBackgroundLoop	;let it loop, let it loop, when zero
+	INC backgroundPtr_hi	;increment memory (makes the pointer as a whole go up 256 bytes)
+	INX
+	CPX #$04	;make the 256 loop four times, this will load the attributes as well
+	BNE _loadBackgroundLoop
+
+	;load attribute table
+;	LDA $2002             ;read PPU status to reset the high/low latch
+;	LDA #$23
+;	STA $2006             ;write the high byte of $23C0 address
+;	LDA #$C0
+;	STA $2006             ;write the low byte of $23C0 address
+;	LDY #$00
+;_loadAttributeLoop:
+;	LDA [backgroundDir_lo], Y
+;	STA $2007             ;write to PPU
+;	INX
+;	CPX #$20              ;8*4= $20 which is 32 in dec
+;	BNE _loadAttributeLoop
+
+	RTS
+
 
 ;PRNG, a pseudorandom number generatior taken from NesDev
 ;seed needs to be set someware at the start of the game
@@ -322,17 +333,23 @@ _input2Loop:
 ;PRG DATA
 ;use camel-casing
 	.bank 1
-	.org $E000
+	.org $A000
 palette:
 	.incbin "persistant.pal"
 	;0 of the 4 colors in one pallete: beginning of the sprite table
 	.incbin "persistant.pal"
-	
+
+;game background
 background:
 	.incbin "snake.nam"
-
 	.rsset background + 960
 attribute	.rs 0
+
+;title background
+titleBackground:
+	.incbin "title.nam"
+	.rsset titleBackground + 960
+titleAttribute	.rs 0
 
 
 ;INTERRUPTS OR VECTORS
