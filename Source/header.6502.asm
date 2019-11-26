@@ -22,13 +22,13 @@ GAME_STATE_TITLE = $00		;gamestates
 GAME_STATE_PLAYING = $01
 GAME_STATE_GAMEOVER = $02
 
-WALL_TOP = 3				;in tiles
-WALL_BOTTOM = 26			;26
-WALL_LEFT = 4
-WALL_RIGHT = 27
+WALL_TOP = 6				;in tiles
+WALL_BOTTOM = 23			;26
+WALL_LEFT = 7
+WALL_RIGHT = 24
 
 ;starting pos
-SNAKE_START_X = $09
+SNAKE_START_X = $0A
 SNAKE_START_Y = $10
 
 ;don't need a 16 bit value, (32*32)/4=256, very convenient, just under that (maximum: 32*30)

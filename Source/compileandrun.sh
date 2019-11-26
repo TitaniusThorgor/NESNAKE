@@ -1,0 +1,1 @@
+wine NESASM3.exe main.6502.asm ; cd .. ; cd .. ; wine Fceux/fceux.exe NESNAKE/Source/main.6502.nes

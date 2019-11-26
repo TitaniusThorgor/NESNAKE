@@ -146,13 +146,52 @@ _tick:
 	AND #%00000011
 	CMP snakeLastInput
 	BEQ _snakeStraight
+
 	;curvs
 	ASL A
 	ASL A
 	CLC
 	ADC snakeLastInput
 	ADC #SNAKE_CHR_BODY_CURVES
+	STA snakeInputsTemp
+	
+	;CURVE SOUNDS
+	LDA snakeTicks_0
+	AND #%00000001
+	BEQ _snakeTickBeepHigh
+	
+	;LowBeep
+	LDA #%10010011	;volume for the tone + duty of 50%
+	STA $4000
+	
+	LDA #$FB
+	STA $4002		;Height of the tone
+	
+	LDA #%10000001
+	STA $4003		;Length of the tone + tone legth hi-byte
+
+	LDA snakeInputsTemp
+
+	LDA snakeInputsTemp
+	JMP _snakeTickBeepDone
+
+_snakeTickBeepHigh:
+	;HighBeep
+	LDA #%10010011	;volume for the tone + duty of 50%
+	STA $4000
+	
+	LDA #$BA
+	STA $4002		;Height of the tone
+	
+	LDA #%10000001
+	STA $4003		;Length of the tone + tone legth hi-byte
+
+_snakeTickBeepDone:
+
+	LDA snakeInputsTemp
 	JMP _snakeUpdateBody
+
+
 _snakeStraight:
 	LDA snakeInputs
 	AND #%00000011
@@ -399,36 +438,15 @@ _snakeTailEvaluated:
 
 
 
-	
-;TICKSOUND
 
-	LDA snakeTicks_0
-	AND #%00000001
-	BEQ _snakeTickBeepHigh
-;	} LowBeep
-	LDA #%10010011	;volume for the tone + duty of 50%
-	STA $4000
-	
-	LDA #$FB
-	STA $4002		;Height of the tone
-	
-	LDA #%10000001
-	STA $4003		;Length of the tone + tone legth hi-byte
 
-	JMP _snakeTickBeepDone
-;	}
-_snakeTickBeepHigh:
-;	{HighBeep
-	LDA #%10010011	;volume for the tone + duty of 50%
-	STA $4000
-	
-	LDA #$BA
-	STA $4002		;Height of the tone
-	
-	LDA #%10000001
-	STA $4003		;Length of the tone + tone legth hi-byte
-;	}
-_snakeTickBeepDone:
+
+
+
+
+
+
+
 
 
 ;FRUIT
