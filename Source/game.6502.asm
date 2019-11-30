@@ -528,6 +528,54 @@ _fruitCheckLoop_X:
 _snakeAfterIncrease:
 ;FRUIT DONE
 	
+
+
+;Check if paused
+	LDA playerOneInput
+	AND #%00010000
+	BNE _gameIsNotPaused
+	;use sprites to display text at $10 in CHR, use the 6 first sprites
+	LDX #$00
+	LDY #$00
+_pauseLoop:
+	;Y-position
+	LDA #$70
+	STA $0200, X
+	INX
+
+	;Tile Number
+	TYA
+	CLC
+	ADC #$10
+	STA $0200, X
+	INX
+
+	;Attributes
+	LDA #%00000010
+	STA $0200, X
+	INX
+
+	;X-Position
+	STY temp
+	INC temp
+	LDA #$00
+_pause_X_Loop:
+	CLC
+	ADC #$08
+	DEC temp
+	BNE _pause_X_Loop
+
+	CLC
+	ADC #$65
+	STA $0200, X
+	INX
+	
+	INY
+	CPY #$05
+	BNE _pauseLoop
+_gameIsNotPaused:
+
+
 ;return from tick
 	RTS
 ;;;;
@@ -687,7 +735,7 @@ _stillGameOver:
 
 
 ;GAME STATE PAUSED
-_gameStatePause:
+_gameStatePaused:
 	LDA playerOneInput
 	AND #%00010000
 	BNE _stillPaused

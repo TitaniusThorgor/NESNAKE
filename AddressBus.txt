@@ -3,7 +3,7 @@ Memory Layout and Ports
 $0000 - $07FF: internal RAM
 	$0000 - $00FF: zero page
 	$0100 - $01FF: stack
-	$0200 - $02FF: DMA sprite data
+	$0200 - $02FF: DMA sprite data:
 	1 - Y Position - vertical position of the sprite on screen. $00 is the top of the screen. Anything above $EF is off the bottom of the screen.
 	2 - Tile Number - this is the tile number (0 to 256) for the graphic to be taken from a Pattern Table.
 	3 - Attributes - this byte holds color and displaying information:

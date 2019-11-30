@@ -21,6 +21,7 @@
 GAME_STATE_TITLE = $00		;gamestates
 GAME_STATE_PLAYING = $01
 GAME_STATE_GAMEOVER = $02
+GAME_STATE_PAUSED = $03
 
 WALL_TOP = 6				;in tiles
 WALL_BOTTOM = 23			;26
@@ -52,6 +53,7 @@ backgroundPtr_hi	.rs 1
 backgroundDir_lo	.rs 1
 backgroundDir_hi	.rs 1
 
+temp				.rs 1
 
 ;BACKGROUND BUFFER: OneTileNamBuffer
 ;this buffer format favours standout tile changes

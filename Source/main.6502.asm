@@ -50,16 +50,16 @@ RESET:			;CPU starts reading here
 ;CLEAR MEMORY, MOVE SPRITES
 _clearMem:
 	LDA #$00
-	STA $0000, x
-	STA $0100, x
-	STA $0300, x
-	STA $0400, x
-	STA $0500, x
-	STA $0600, x
-	STA $0700, x
+	STA $0000, X
+	STA $0100, X
+	STA $0300, X
+	STA $0400, X
+	STA $0500, X
+	STA $0600, X
+	STA $0700, X
 
 	LDA $FE
-	STA $0200, x	;move all sprites off screen
+	STA $0200, X	;move all sprites off screen
 	INX
 	BNE _clearMem	;when x turns from $FF to $00 the zero flag is set
 	
@@ -76,7 +76,7 @@ _clearMem:
 	;loop with x and feed PPU, use this method if the whole palette is changed, otherwise use $3F10 and 32 bytes up
 	LDX #$00
 _loadPalettsLoop:
-	LDA palette, x
+	LDA palette, X
 	STA $2007			;write the color one by one to the same address
 	INX					;increment x
 	CPX #$20			;compare x with $20 = 32, which is the size of both paletts combined
@@ -147,8 +147,16 @@ _notGameStatePlaying:
 _notGameStateTitle:
 
 	CMP #GAME_STATE_GAMEOVER
-	BNE Forever
+	BNE _notGameStateGameOver
 	JSR _gameStateGameOver
+	JMP Forever
+_notGameStateGameOver:
+
+	CMP #GAME_STATE_PAUSED
+	BNE _notGameStatePaused
+	JSR _gameStatePaused
+	JMP Forever
+_notGameStatePaused:
 
 Forever:
 	LDA nmiDone
