@@ -78,6 +78,7 @@ seed				.rs 2
 ;general
 playerOneInput		.rs 1		;use functions together with a bitwise AND to get input
 playerTwoInput		.rs 1		; A   B   Select   Start   Up   Down   Left   Right
+playerOnePressed	.rs 1
 nmiDone				.rs 1
 gameState			.rs 1		;use states defined as constants
 

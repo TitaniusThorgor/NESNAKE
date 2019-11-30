@@ -237,7 +237,6 @@ _loadBackgroundLoop:
 	RTS
 	
 
-
 ;PRNG, a pseudorandom number generatior taken from NesDev
 ;seed needs to be set someware at the start of the game
 ;usage: this fills A with the generated number, also uses Y
@@ -253,6 +252,16 @@ _PRNG_loop:
 	BNE _PRNG_loop
 	STA seed
 	CMP #00			;reload flags
+	RTS
+
+
+ResetSprites:
+	LDX #$00
+_resetSpritesLoop:
+	LDA $FE
+	STA $0200, X	;move all sprites off screen
+	INX
+	BNE _resetSpritesLoop
 	RTS
 
 

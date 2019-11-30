@@ -533,7 +533,7 @@ _snakeAfterIncrease:
 ;Check if paused
 	LDA playerOneInput
 	AND #%00010000
-	BNE _gameIsNotPaused
+	BEQ _gameIsNotPaused
 	;use sprites to display text at $10 in CHR, use the 6 first sprites
 	LDX #$00
 	LDY #$00
@@ -573,6 +573,10 @@ _pause_X_Loop:
 	INY
 	CPY #$05
 	BNE _pauseLoop
+
+	;Set game state
+	LDA #GAME_STATE_PAUSED
+	STA gameState
 _gameIsNotPaused:
 
 
@@ -738,8 +742,13 @@ _stillGameOver:
 _gameStatePaused:
 	LDA playerOneInput
 	AND #%00010000
-	BNE _stillPaused
+	BEQ _stillPaused
+
+	;Change back game state
 	LDA #GAME_STATE_PLAYING
 	STA gameState
+
+	;Remove text
+	JSR ResetSprites
 _stillPaused:
 	RTS
