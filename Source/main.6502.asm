@@ -317,6 +317,8 @@ _afterNamUpdate:
 
 
 ;INPUT
+	LDA playerOneInput
+	STA playerOnePreviousInput
 	;latch buttons, prepare buttons to send out signals
 	LDA #$01
 	STA $4016
@@ -339,6 +341,17 @@ _input2Loop:
 	DEX
 	BNE _input2Loop
 
+;Player one pressed
+	LDA playerOneInput
+	EOR playerOnePreviousInput
+	AND playerOneInput
+	STA playerOnePressed
+
+;Player one released
+	LDA playerOneInput
+	EOR playerOnePreviousInput
+	AND playerOnePreviousInput
+	STA playerOneReleased
 
 
 ;end of NMI

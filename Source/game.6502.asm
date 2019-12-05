@@ -3,6 +3,58 @@
 
 ;GAME STATE PLAYING
 _gameStatePlaying:
+
+
+;Check if paused
+	LDA playerOnePressed
+	AND #%00010000
+	BEQ _gameIsNotPaused
+	;use sprites to display text at $10 in CHR, use the 6 first sprites
+	LDX #$00
+	LDY #$00
+_pauseLoop:
+	;Y-position
+	LDA #$70
+	STA $0200, X
+	INX
+
+	;Tile Number
+	TYA
+	CLC
+	ADC #$10
+	STA $0200, X
+	INX
+
+	;Attributes
+	LDA #%00000010
+	STA $0200, X
+	INX
+
+	;X-Position
+	STY temp
+	INC temp
+	LDA #$00
+_pause_X_Loop:
+	CLC
+	ADC #$08
+	DEC temp
+	BNE _pause_X_Loop
+
+	CLC
+	ADC #$65
+	STA $0200, X
+	INX
+	
+	INY
+	CPY #$05
+	BNE _pauseLoop
+
+	;Set game state
+	LDA #GAME_STATE_PAUSED
+	STA gameState
+_gameIsNotPaused:
+
+
 	;snakeLastInput
 	;convert input to two bytes
 	LDA playerOneInput
@@ -133,6 +185,7 @@ _tick:
 	LDA snakeTicks_3
 	ADC #$00
 	STA snakeTicks_3
+
 
 	;display fruit
 	LDY #FRUIT_CHR
@@ -527,57 +580,7 @@ _fruitCheckLoop_X:
 	JSR UpdateNamPos
 _snakeAfterIncrease:
 ;FRUIT DONE
-	
 
-
-;Check if paused
-	LDA playerOneInput
-	AND #%00010000
-	BEQ _gameIsNotPaused
-	;use sprites to display text at $10 in CHR, use the 6 first sprites
-	LDX #$00
-	LDY #$00
-_pauseLoop:
-	;Y-position
-	LDA #$70
-	STA $0200, X
-	INX
-
-	;Tile Number
-	TYA
-	CLC
-	ADC #$10
-	STA $0200, X
-	INX
-
-	;Attributes
-	LDA #%00000010
-	STA $0200, X
-	INX
-
-	;X-Position
-	STY temp
-	INC temp
-	LDA #$00
-_pause_X_Loop:
-	CLC
-	ADC #$08
-	DEC temp
-	BNE _pause_X_Loop
-
-	CLC
-	ADC #$65
-	STA $0200, X
-	INX
-	
-	INY
-	CPY #$05
-	BNE _pauseLoop
-
-	;Set game state
-	LDA #GAME_STATE_PAUSED
-	STA gameState
-_gameIsNotPaused:
 
 
 ;return from tick
@@ -740,7 +743,7 @@ _stillGameOver:
 
 ;GAME STATE PAUSED
 _gameStatePaused:
-	LDA playerOneInput
+	LDA playerOnePressed
 	AND #%00010000
 	BEQ _stillPaused
 
