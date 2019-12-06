@@ -388,6 +388,23 @@ gameOverBackground:
 	.rsset gameOverBackground + 960
 gameOverAttribute	.rs 0
 
+;level data; x then y
+;the first two bytes describes the player starting position
+;the 4th and 5th bytes describes the fruit starting position
+;the 6th byte is the horizontal outer wall position
+;the 7th byte is the vertical outer wall position
+;the 8th byte describes the length of the "wall overrides"
+;the rest of the bytes are the positions of the wall tiles
+
+;level_1 is a 16x16 empty playing area
+level_1:		 ;fruit		;wall	
+	.db $0A, $10, $12, $10, $
+;level_2 is the same as the previous but with one wall tile
+level_2:
+	.db $0A, $10, 1, $0C, $12
+
+level_end:
+
 ;INTERRUPTS OR VECTORS
 	.org $FFFA
 	.dw NMI 	;"Update" vector, processor starts to read code here each graphics cycle if enabled
