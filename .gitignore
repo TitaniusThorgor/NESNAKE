@@ -2,3 +2,5 @@
 *.nes
 #Ignore the fns file
 *.fns
+#Ignore .deb files
+*.deb

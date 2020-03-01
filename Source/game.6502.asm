@@ -54,7 +54,6 @@ _pause_X_Loop:
 	STA gameState
 _gameIsNotPaused:
 
-
 	;snakeLastInput
 	;convert input to two bytes
 	LDA playerOneInput
@@ -602,10 +601,10 @@ _gameStateTitle:
 	;STARTING
 
 	;snake psosition
-    LDA #SNAKE_START_X
-    STA snakePos_X
-    LDA #SNAKE_START_Y
-    STA snakePos_Y
+	LDA #SNAKE_START_X
+	STA snakePos_X
+	LDA #SNAKE_START_Y
+	STA snakePos_Y
 
 	;snake length, snake is this +1 long
 	LDA #$02
@@ -614,19 +613,19 @@ _gameStateTitle:
 	STA snakeLength_hi
 
 	;fruit position
-    LDA #$15
-    STA fruitPos_X
+	LDA #$15
+	STA fruitPos_X
 	LDA #$10
-    STA fruitPos_Y
+	STA fruitPos_Y
 
 	;snake last input
-    LDA #$03    ;right, facing right in the beginning
-    STA snakeLastInput
-    STA snakeLastInputTemp
+	LDA #$03    ;right, facing right in the beginning
+	STA snakeLastInput
+	STA snakeLastInputTemp
 
 	;snake inputs/buffer
-    LDA #$FF            ;right in all elements (snake tiles, two bits per tile)
-    STA snakeInputs     ;we start with the length of 4
+	LDA #$FF            ;right in all elements (snake tiles, two bits per tile)
+	STA snakeInputs     ;we start with the length of 4
 
 
 	;starting: update background

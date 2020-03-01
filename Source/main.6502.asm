@@ -406,6 +406,9 @@ level_2:
 level_end:
 
 ;INTERRUPTS OR VECTORS
+	;; $FFFA-$FFFB = NMI vector
+	;; $FFFC-$FFFD = Reset vector
+	;; $FFFE-$FFFF = IRQ/BRK vector
 	.org $FFFA
 	.dw NMI 	;"Update" vector, processor starts to read code here each graphics cycle if enabled
 	.dw RESET	;the processor will start exicuting here when the program starst as well as when the reset button is pressed 
