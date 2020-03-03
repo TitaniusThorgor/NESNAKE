@@ -28,3 +28,9 @@ Retro cartridge making tutorial:
 
 Nesdev:
         wiki.nesdev.com/w/index.php/Nesdev_Wiki
+
+Commands used for filling the EPROM :
+C:\Users\scoli\Downloads>copy /b main.6502.nes.chr.bin + main.6502.nes.chr.bin main.6502.nes.cher.FILL.bin
+main.6502.nes.chr.bin
+main.6502.nes.chr.bin
+        1 file(s) copied.
