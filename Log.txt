@@ -34,3 +34,9 @@ C:\Users\scoli\Downloads>copy /b main.6502.nes.chr.bin + main.6502.nes.chr.bin m
 main.6502.nes.chr.bin
 main.6502.nes.chr.bin
         1 file(s) copied.
+
+27C128 Mapper compatability:
+http://nesdev.com/NES%20EPROM%20Conversions.txt
+
+27C128 CMOS EPROM Spec sheet:
+http://ww1.microchip.com/downloads/en/devicedoc/11003L.pdf
